@@ -200,8 +200,7 @@ void AVRPawn::Tick(float deltaTime)
 void AVRPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 
-    UE_LOG(LogTemp, Log, TEXT("入力割り当て"));
-
+    UE_LOG(LogTemp, Log, TEXT("入力割り当て　開始"));
 
     if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
 
@@ -218,6 +217,8 @@ void AVRPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
         //ワイヤー巻き取り
         EnhancedInputComponent->BindAction(RetractWireAction_L, ETriggerEvent::Triggered, this, &AVRPawn::RetractWire_L);
         EnhancedInputComponent->BindAction(RetractWireAction_R, ETriggerEvent::Triggered, this, &AVRPawn::RetractWire_R);
+
+        UE_LOG(LogTemp, Log, TEXT("入力割り当て　完了"));
     }
 }
 
