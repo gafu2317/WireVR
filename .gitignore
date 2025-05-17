@@ -1,0 +1,51 @@
+# Unreal Engine ファイル
+Binaries/
+Build/
+Debug/
+DerivedDataCache/
+Intermediate/
+Saved/
+.vscode/
+.vs/
+*.VC.db
+*.opensdf
+*.opendb
+*.sdf
+*.sln
+*.suo
+*.xcodeproj
+*.xcworkspace
+
+# アセットファイル
+Content/StarterContent/
+
+# コンパイル済みオブジェクトファイル
+*.o
+*.obj
+*.pdb
+
+# プリコンパイル済みヘッダー
+*.gch
+*.pch
+
+# 実行ファイル
+*.exe
+*.out
+*.app
+
+# macOS固有のファイル
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windowsの一時ファイル
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# クラッシュログ
+Crashes/
+
+# 自動生成されたプロジェクトファイル
+*.generated.h
