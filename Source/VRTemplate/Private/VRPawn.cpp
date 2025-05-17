@@ -92,7 +92,7 @@ void AVRPawn::BeginPlay()
     CheckConnectable(0, true);
     CheckConnectable(0, true);
 
-    UE_LOG(LogTemp, Log, TEXT("ver.1.1"));
+    UE_LOG(LogTemp, Log, TEXT("ver.1.2"));
 
     if (MotionController[0]) {
         UE_LOG(LogTemp, Log, TEXT("MotionController[0] is found."));
@@ -194,15 +194,15 @@ void AVRPawn::Tick(float deltaTime)
 
     // 風切り音の再生
     WindAudio->SetVolumeMultiplier(CurrentVelocity.Size() / 5000);
-
-
-    //UE_LOG(LogTemp, Log, TEXT("CurrentVelocity.Size:%f"), CurrentVelocity.Size());
-    UE_LOG(LogTemp, Log, TEXT("FPS:%f"), 1 / deltaTime);
 }
 
 
 void AVRPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
+
+    UE_LOG(LogTemp, Log, TEXT("入力割り当て"));
+
+
     if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
 
         //ジャンプ
