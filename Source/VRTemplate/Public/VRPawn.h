@@ -86,8 +86,9 @@ protected:
 private:
     UPROPERTY(VisibleAnywhere)
     UCapsuleComponent* CapsuleComponent;
-    UMovementComponent* MovementComponent;
+    UPROPERTY(EditAnywhere)
     UCameraComponent* VRCamera;
+    UMovementComponent* MovementComponent;
 
     FVector CurrentVelocity = FVector::ZeroVector;
     float SlopeSin;

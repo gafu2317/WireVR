@@ -338,6 +338,9 @@ FVector AVRPawn::GetControllerForward(int index) const
 // ワイヤー接続の切り替え
 void AVRPawn::ToggleWire(int index)
 {
+
+    UE_LOG(LogTemp, Log, TEXT("VRCamera Relative Location: %s"), *VRCamera->GetRelativeLocation().ToString());
+
     if (bWireAttached[index])
     {
         DetachWire(index);
