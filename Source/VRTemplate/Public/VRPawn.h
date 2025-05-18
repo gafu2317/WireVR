@@ -90,6 +90,7 @@ private:
     UCapsuleComponent* CapsuleComponent;
     UPROPERTY(EditAnywhere)
     UCameraComponent* VRCamera;
+    USceneComponent* CameraParent;
     UPROPERTY(VisibleAnywhere)
     UMovementComponent* MovementComponent;
 
