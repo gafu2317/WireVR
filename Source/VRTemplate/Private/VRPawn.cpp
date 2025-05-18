@@ -96,7 +96,7 @@ void AVRPawn::BeginPlay()
     CheckConnectable(0, true);
     CheckConnectable(0, true);
 
-    UE_LOG(LogTemp, Log, TEXT("ver.8"));
+    UE_LOG(LogTemp, Log, TEXT("ver.9"));
 
     if (MotionController[0]) {
         UE_LOG(LogTemp, Log, TEXT("MotionController[0] is found."));
@@ -130,12 +130,12 @@ void AVRPawn::RecenterHMDOffset()
     FVector DevicePosition;
     UHeadMountedDisplayFunctionLibrary::GetOrientationAndPosition(DeviceRotation, DevicePosition);
 
-    //MotionControllerMisalignment[0] = DevicePosition - FVector::UpVector * DevicePosition.Z;
-    //MotionControllerMisalignment[1] = DevicePosition - FVector::UpVector * DevicePosition.Z;
-    FVector Misalignment = MotionController[0]->GetComponentLocation() - GetActorLocation();
-    MotionControllerMisalignment[0] = Misalignment - FVector::UpVector * Misalignment.Z;
-    Misalignment = MotionController[1]->GetComponentLocation() - GetActorLocation();
-    MotionControllerMisalignment[1] = Misalignment - FVector::UpVector * Misalignment.Z;
+    MotionControllerMisalignment[0] = DevicePosition - FVector::UpVector * DevicePosition.Z / 2 - FVector::RightVector * 25;
+    MotionControllerMisalignment[1] = DevicePosition - FVector::UpVector * DevicePosition.Z / 2 + FVector::RightVector * 25;
+    //FVector Misalignment = MotionController[0]->GetComponentLocation() - GetActorLocation();
+    //MotionControllerMisalignment[0] = Misalignment - FVector::UpVector * Misalignment.Z;
+    //Misalignment = MotionController[1]->GetComponentLocation() - GetActorLocation();
+    //MotionControllerMisalignment[1] = Misalignment - FVector::UpVector * Misalignment.Z;
     //MotionControllerMisalignment[0] = MotionController[0]->GetComponentLocation() - GetActorLocation();
     //MotionControllerMisalignment[1] = MotionController[1]->GetComponentLocation() - GetActorLocation();
 
