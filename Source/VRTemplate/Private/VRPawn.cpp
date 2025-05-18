@@ -33,7 +33,7 @@ AVRPawn::AVRPawn()
     VRCamera->SetupAttachment(RootComponent);
     VRCamera->bUsePawnControlRotation = false;
     VRCamera->AddLocalOffset(FVector::UpVector * 80);
-    VRCamera->bLockToHmd = false;
+    //VRCamera->bLockToHmd = false;
 
     // コントローラー
     MotionController.SetNum(2);
@@ -93,7 +93,7 @@ void AVRPawn::BeginPlay()
     CheckConnectable(0, true);
     CheckConnectable(0, true);
 
-    UE_LOG(LogTemp, Log, TEXT("ver.2.0"));
+    UE_LOG(LogTemp, Log, TEXT("ver.2.1"));
 
     if (MotionController[0]) {
         UE_LOG(LogTemp, Log, TEXT("MotionController[0] is found."));
@@ -109,6 +109,7 @@ void AVRPawn::BeginPlay()
         UE_LOG(LogTemp, Log, TEXT("MotionController[1] is not found!"));
     }
 
+    UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();
 }
 
 
@@ -203,10 +204,10 @@ void AVRPawn::Tick(float deltaTime)
 
 
     // カメラ回転
-    FRotator DeviceRotation;
-    FVector DevicePosition;
-    UHeadMountedDisplayFunctionLibrary::GetOrientationAndPosition(DeviceRotation, DevicePosition);
-    VRCamera->SetWorldRotation(DeviceRotation);
+    //FRotator DeviceRotation;
+    //FVector DevicePosition;
+    //UHeadMountedDisplayFunctionLibrary::GetOrientationAndPosition(DeviceRotation, DevicePosition);
+    //VRCamera->SetWorldRotation(DeviceRotation);
 }
 
 
