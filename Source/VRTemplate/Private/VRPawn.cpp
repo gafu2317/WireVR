@@ -96,7 +96,7 @@ void AVRPawn::BeginPlay()
     CheckConnectable(0, true);
     CheckConnectable(0, true);
 
-    UE_LOG(LogTemp, Log, TEXT("ver.5"));
+    UE_LOG(LogTemp, Log, TEXT("ver.6"));
 
     if (MotionController[0]) {
         UE_LOG(LogTemp, Log, TEXT("MotionController[0] is found."));
@@ -130,11 +130,11 @@ void AVRPawn::RecenterHMDOffset()
     FVector DevicePosition;
     UHeadMountedDisplayFunctionLibrary::GetOrientationAndPosition(DeviceRotation, DevicePosition);
 
-    MotionControllerMisalignment[0] = DevicePosition;
-    MotionControllerMisalignment[1] = DevicePosition;
+    MotionControllerMisalignment[0] = DevicePosition - FVector::UpVector * DevicePosition.Z;
+    MotionControllerMisalignment[1] = DevicePosition - FVector::UpVector * DevicePosition.Z;
 
-    WireGun_L->AddLocalOffset(-DevicePosition);
-    WireGun_R->AddLocalOffset(-DevicePosition);
+    WireGun_L->AddLocalOffset(-MotionControllerMisalignment[0]);
+    WireGun_R->AddLocalOffset(-MotionControllerMisalignment[1]);
 
     // 親コンポーネントへのポインタ取得（例: CapsuleComponent）
     if (CameraParent)
