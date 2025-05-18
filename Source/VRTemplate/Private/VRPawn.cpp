@@ -96,7 +96,7 @@ void AVRPawn::BeginPlay()
     CheckConnectable(0, true);
     CheckConnectable(0, true);
 
-    UE_LOG(LogTemp, Log, TEXT("ver.6"));
+    UE_LOG(LogTemp, Log, TEXT("ver.7"));
 
     if (MotionController[0]) {
         UE_LOG(LogTemp, Log, TEXT("MotionController[0] is found."));
@@ -130,8 +130,12 @@ void AVRPawn::RecenterHMDOffset()
     FVector DevicePosition;
     UHeadMountedDisplayFunctionLibrary::GetOrientationAndPosition(DeviceRotation, DevicePosition);
 
-    MotionControllerMisalignment[0] = DevicePosition - FVector::UpVector * DevicePosition.Z;
-    MotionControllerMisalignment[1] = DevicePosition - FVector::UpVector * DevicePosition.Z;
+    //MotionControllerMisalignment[0] = DevicePosition - FVector::UpVector * DevicePosition.Z;
+    //MotionControllerMisalignment[1] = DevicePosition - FVector::UpVector * DevicePosition.Z;
+    FVector Misalignment = MotionController[0]->GetRelativeLocation();
+    MotionControllerMisalignment[0] = Misalignment - FVector::UpVector * Misalignment.Z;
+    Misalignment = MotionController[1]->GetRelativeLocation();
+    MotionControllerMisalignment[1] = Misalignment - FVector::UpVector * Misalignment.Z;
 
     WireGun_L->AddLocalOffset(-MotionControllerMisalignment[0]);
     WireGun_R->AddLocalOffset(-MotionControllerMisalignment[1]);
