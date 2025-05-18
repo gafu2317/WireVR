@@ -94,7 +94,7 @@ void AVRPawn::BeginPlay()
     CheckConnectable(0, true);
     CheckConnectable(0, true);
 
-    UE_LOG(LogTemp, Log, TEXT("ver.2.3"));
+    UE_LOG(LogTemp, Log, TEXT("ver.2.4"));
 
     if (MotionController[0]) {
         UE_LOG(LogTemp, Log, TEXT("MotionController[0] is found."));
@@ -114,9 +114,7 @@ void AVRPawn::BeginPlay()
 
     // コントローラーのズレを記憶
     MotionControllerMisalignment[0] = MotionController[0]->GetRelativeLocation();
-    UE_LOG(LogTemp, Log, TEXT("MotionControllerMisalignment[0]: %s"), *MotionControllerMisalignment[0].ToString());
     MotionControllerMisalignment[1] = MotionController[1]->GetRelativeLocation();
-    UE_LOG(LogTemp, Log, TEXT("MotionControllerMisalignment[1]: %s"), *MotionControllerMisalignment[1].ToString());
 }
 
 
@@ -364,6 +362,8 @@ void AVRPawn::ToggleWire(int index)
 {
 
     UE_LOG(LogTemp, Log, TEXT("VRCamera Relative Location: %s"), *VRCamera->GetRelativeLocation().ToString());
+    UE_LOG(LogTemp, Log, TEXT("MotionControllerMisalignment[0]: %s"), *MotionControllerMisalignment[0].ToString());
+    UE_LOG(LogTemp, Log, TEXT("MotionControllerMisalignment[1]: %s"), *MotionControllerMisalignment[1].ToString());
 
     if (bWireAttached[index])
     {
