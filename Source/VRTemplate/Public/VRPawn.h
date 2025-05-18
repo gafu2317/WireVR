@@ -140,6 +140,7 @@ private:
     // モーションコントローラー（左/右）
     UPROPERTY(VisibleAnywhere, Category = "Controller")
     TArray <UMotionControllerComponent*> MotionController;
+    TArray <FVector> MotionControllerMisalignment;
 
     // ワイヤー銃（左/右）
     UPROPERTY(EditAnywhere, Category = "Controller")
