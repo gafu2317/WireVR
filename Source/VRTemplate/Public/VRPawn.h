@@ -56,6 +56,8 @@ protected:
     virtual void Tick(float deltaTime) override;
     virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
+    void RecenterHMDOffset();
+
     // ワイヤー接続可否判定
     void CheckConnectable(int index, bool bForceUpdate);
 
