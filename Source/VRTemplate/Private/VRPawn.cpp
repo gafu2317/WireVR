@@ -96,7 +96,7 @@ void AVRPawn::BeginPlay()
     CheckConnectable(0, true);
     CheckConnectable(0, true);
 
-    UE_LOG(LogTemp, Log, TEXT("ver.9"));
+    UE_LOG(LogTemp, Log, TEXT("ver.10"));
 
     if (MotionController[0]) {
         UE_LOG(LogTemp, Log, TEXT("MotionController[0] is found."));
@@ -130,8 +130,8 @@ void AVRPawn::RecenterHMDOffset()
     FVector DevicePosition;
     UHeadMountedDisplayFunctionLibrary::GetOrientationAndPosition(DeviceRotation, DevicePosition);
 
-    MotionControllerMisalignment[0] = DevicePosition - FVector::UpVector * DevicePosition.Z / 2 - FVector::RightVector * 25;
-    MotionControllerMisalignment[1] = DevicePosition - FVector::UpVector * DevicePosition.Z / 2 + FVector::RightVector * 25;
+    MotionControllerMisalignment[0] = DevicePosition - FVector::UpVector * DevicePosition.Z / 2;
+    MotionControllerMisalignment[1] = DevicePosition - FVector::UpVector * DevicePosition.Z / 2;
     //FVector Misalignment = MotionController[0]->GetComponentLocation() - GetActorLocation();
     //MotionControllerMisalignment[0] = Misalignment - FVector::UpVector * Misalignment.Z;
     //Misalignment = MotionController[1]->GetComponentLocation() - GetActorLocation();
@@ -139,8 +139,8 @@ void AVRPawn::RecenterHMDOffset()
     //MotionControllerMisalignment[0] = MotionController[0]->GetComponentLocation() - GetActorLocation();
     //MotionControllerMisalignment[1] = MotionController[1]->GetComponentLocation() - GetActorLocation();
 
-    WireGun_L->AddLocalOffset(-MotionControllerMisalignment[0]);
-    WireGun_R->AddLocalOffset(-MotionControllerMisalignment[1]);
+    //WireGun_L->AddLocalOffset(-MotionControllerMisalignment[0]);
+    //WireGun_R->AddLocalOffset(-MotionControllerMisalignment[1]);
 
     // 親コンポーネントへのポインタ取得（例: CapsuleComponent）
     if (CameraParent)
