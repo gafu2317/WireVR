@@ -88,6 +88,7 @@ private:
     UCapsuleComponent* CapsuleComponent;
     UPROPERTY(EditAnywhere)
     UCameraComponent* VRCamera;
+    UPROPERTY(VisibleAnywhere)
     UMovementComponent* MovementComponent;
 
     FVector CurrentVelocity = FVector::ZeroVector;
