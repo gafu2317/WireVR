@@ -96,7 +96,7 @@ void AVRPawn::BeginPlay()
     CheckConnectable(0, true);
     CheckConnectable(0, true);
 
-    UE_LOG(LogTemp, Log, TEXT("ver.2"));
+    UE_LOG(LogTemp, Log, TEXT("ver.3"));
 
     if (MotionController[0]) {
         UE_LOG(LogTemp, Log, TEXT("MotionController[0] is found."));
@@ -118,9 +118,9 @@ void AVRPawn::BeginPlay()
     //MotionControllerMisalignment[0] = MotionController[0]->GetRelativeLocation();
     //MotionControllerMisalignment[1] = MotionController[1]->GetRelativeLocation();
 
-    //FTimerHandle TmpHandle;
-    //GetWorldTimerManager().SetTimer(TmpHandle, this, &AVRPawn::RecenterHMDOffset, 0.1f, false);
-    RecenterHMDOffset();
+    FTimerHandle TmpHandle;
+    GetWorldTimerManager().SetTimer(TmpHandle, this, &AVRPawn::RecenterHMDOffset, 0.1f, false);
+    //RecenterHMDOffset();
 }
 
 void AVRPawn::RecenterHMDOffset()
