@@ -33,7 +33,7 @@ AVRPawn::AVRPawn()
     VRCamera->SetupAttachment(RootComponent);
     VRCamera->bUsePawnControlRotation = false;
     VRCamera->AddLocalOffset(FVector::UpVector * 80);
-    //VRCamera->bLockToHmd = false;
+    VRCamera->bLockToHmd = true;
 
     // コントローラー
     MotionController.SetNum(2);
@@ -94,7 +94,7 @@ void AVRPawn::BeginPlay()
     CheckConnectable(0, true);
     CheckConnectable(0, true);
 
-    UE_LOG(LogTemp, Log, TEXT("ver.2.5"));
+    UE_LOG(LogTemp, Log, TEXT("ver.2.6"));
 
     if (MotionController[0]) {
         UE_LOG(LogTemp, Log, TEXT("MotionController[0] is found."));
@@ -117,7 +117,7 @@ void AVRPawn::BeginPlay()
     //MotionControllerMisalignment[1] = MotionController[1]->GetRelativeLocation();
 
     FTimerHandle TmpHandle;
-    GetWorldTimerManager().SetTimer(TmpHandle, this, &AVRPawn::RecenterHMDOffset, 0.02f, false);
+    GetWorldTimerManager().SetTimer(TmpHandle, this, &AVRPawn::RecenterHMDOffset, 0.1f, false);
 }
 
 void AVRPawn::RecenterHMDOffset()
@@ -136,8 +136,8 @@ void AVRPawn::RecenterHMDOffset()
         MotionControllerMisalignment[1] = DevicePosition;
 
         // 回転を打ち消し
-        FQuat InvQuat = DeviceRotation.Quaternion().Inverse();
-        CapsuleComponent->SetRelativeRotation(InvQuat);
+        //FQuat InvQuat = DeviceRotation.Quaternion().Inverse();
+        //CapsuleComponent->SetRelativeRotation(InvQuat);
     }
 }
 
@@ -233,10 +233,10 @@ void AVRPawn::Tick(float deltaTime)
 
 
     // カメラ回転
-    FRotator DeviceRotation;
-    FVector DevicePosition;
-    UHeadMountedDisplayFunctionLibrary::GetOrientationAndPosition(DeviceRotation, DevicePosition);
-    VRCamera->SetWorldRotation(DeviceRotation);
+    //FRotator DeviceRotation;
+    //FVector DevicePosition;
+    //UHeadMountedDisplayFunctionLibrary::GetOrientationAndPosition(DeviceRotation, DevicePosition);
+    //VRCamera->SetWorldRotation(DeviceRotation);
 }
 
 
@@ -367,10 +367,13 @@ FVector AVRPawn::UpdateWireMovement(float deltaTime)
 //コントローラー位置を取得
 FVector AVRPawn::GetControllerLocation(int index) const
 {
+    /*
     return 
         MotionController[index] ? 
         MotionController[index]->GetComponentLocation() - MotionControllerMisalignment[index] : 
         GetActorLocation();
+    */
+    return MotionController[index] ? MotionController[index]->GetComponentLocation() : GetActorLocation();
 }
 
 
