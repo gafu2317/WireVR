@@ -94,7 +94,7 @@ void AVRPawn::BeginPlay()
     CheckConnectable(0, true);
     CheckConnectable(0, true);
 
-    UE_LOG(LogTemp, Log, TEXT("ver.2.2"));
+    UE_LOG(LogTemp, Log, TEXT("ver.2.3"));
 
     if (MotionController[0]) {
         UE_LOG(LogTemp, Log, TEXT("MotionController[0] is found."));
@@ -113,8 +113,10 @@ void AVRPawn::BeginPlay()
     //UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();
 
     // コントローラーのズレを記憶
-    MotionControllerMisalignment[0] = GetControllerLocation(0);
-    MotionControllerMisalignment[1] = GetControllerLocation(1);
+    MotionControllerMisalignment[0] = MotionController[0]->GetRelativeLocation();
+    UE_LOG(LogTemp, Log, TEXT("MotionControllerMisalignment[0]: %s"), *MotionControllerMisalignment[0].ToString());
+    MotionControllerMisalignment[1] = MotionController[1]->GetRelativeLocation();
+    UE_LOG(LogTemp, Log, TEXT("MotionControllerMisalignment[1]: %s"), *MotionControllerMisalignment[1].ToString());
 }
 
 
