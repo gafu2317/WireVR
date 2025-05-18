@@ -96,7 +96,7 @@ void AVRPawn::BeginPlay()
     CheckConnectable(0, true);
     CheckConnectable(0, true);
 
-    UE_LOG(LogTemp, Log, TEXT("ver.3"));
+    UE_LOG(LogTemp, Log, TEXT("ver.4"));
 
     if (MotionController[0]) {
         UE_LOG(LogTemp, Log, TEXT("MotionController[0] is found."));
@@ -391,6 +391,7 @@ FVector AVRPawn::GetControllerForward(int index) const
 void AVRPawn::ToggleWire(int index)
 {
 
+    UE_LOG(LogTemp, Log, TEXT("CameraParent Relative Location: %s"), *CameraParent->GetRelativeLocation().ToString());
     UE_LOG(LogTemp, Log, TEXT("VRCamera Relative Location: %s"), *VRCamera->GetRelativeLocation().ToString());
     UE_LOG(LogTemp, Log, TEXT("MotionControllerMisalignment[0]: %s"), *MotionController[0]->GetRelativeLocation().ToString());
     UE_LOG(LogTemp, Log, TEXT("MotionControllerMisalignment[1]: %s"), *MotionController[1]->GetRelativeLocation().ToString());
