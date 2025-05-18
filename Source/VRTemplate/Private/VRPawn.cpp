@@ -33,7 +33,7 @@ AVRPawn::AVRPawn()
     VRCamera->SetupAttachment(RootComponent);
     VRCamera->bUsePawnControlRotation = false;
     VRCamera->AddLocalOffset(FVector::UpVector * 80);
-    VRCamera->bLockToHmd = false;
+    //VRCamera->bLockToHmd = false;
 
     // コントローラー
     MotionController.SetNum(2);
@@ -94,7 +94,7 @@ void AVRPawn::BeginPlay()
     CheckConnectable(0, true);
     CheckConnectable(0, true);
 
-    UE_LOG(LogTemp, Log, TEXT("ver.2.4"));
+    UE_LOG(LogTemp, Log, TEXT("ver.2.5"));
 
     if (MotionController[0]) {
         UE_LOG(LogTemp, Log, TEXT("MotionController[0] is found."));
@@ -113,8 +113,32 @@ void AVRPawn::BeginPlay()
     //UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();
 
     // コントローラーのズレを記憶
-    MotionControllerMisalignment[0] = MotionController[0]->GetRelativeLocation();
-    MotionControllerMisalignment[1] = MotionController[1]->GetRelativeLocation();
+    //MotionControllerMisalignment[0] = MotionController[0]->GetRelativeLocation();
+    //MotionControllerMisalignment[1] = MotionController[1]->GetRelativeLocation();
+
+    FTimerHandle TmpHandle;
+    GetWorldTimerManager().SetTimer(TmpHandle, this, &AVRPawn::RecenterHMDOffset, 0.02f, false);
+}
+
+void AVRPawn::RecenterHMDOffset()
+{
+    // 現在のHMDトラッキングを取得
+    FRotator DeviceRotation;
+    FVector DevicePosition;
+    UHeadMountedDisplayFunctionLibrary::GetOrientationAndPosition(DeviceRotation, DevicePosition);
+
+    // 親コンポーネントへのポインタ取得（例: CapsuleComponent）
+    if (CapsuleComponent)
+    {
+        // 位置を打ち消し
+        CapsuleComponent->SetRelativeLocation(-DevicePosition);
+        MotionControllerMisalignment[0] = DevicePosition;
+        MotionControllerMisalignment[1] = DevicePosition;
+
+        // 回転を打ち消し
+        FQuat InvQuat = DeviceRotation.Quaternion().Inverse();
+        CapsuleComponent->SetRelativeRotation(InvQuat);
+    }
 }
 
 
@@ -362,8 +386,8 @@ void AVRPawn::ToggleWire(int index)
 {
 
     UE_LOG(LogTemp, Log, TEXT("VRCamera Relative Location: %s"), *VRCamera->GetRelativeLocation().ToString());
-    UE_LOG(LogTemp, Log, TEXT("MotionControllerMisalignment[0]: %s"), *MotionControllerMisalignment[0].ToString());
-    UE_LOG(LogTemp, Log, TEXT("MotionControllerMisalignment[1]: %s"), *MotionControllerMisalignment[1].ToString());
+    UE_LOG(LogTemp, Log, TEXT("MotionControllerMisalignment[0]: %s"), *MotionController[0]->GetRelativeLocation().ToString());
+    UE_LOG(LogTemp, Log, TEXT("MotionControllerMisalignment[1]: %s"), *MotionController[1]->GetRelativeLocation().ToString());
 
     if (bWireAttached[index])
     {
