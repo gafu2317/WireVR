@@ -29,8 +29,10 @@ AVRPawn::AVRPawn()
     MovementComponent->SetUpdatedComponent(CapsuleComponent);
 
     //VRカメラ
+    CameraParent = CreateDefaultSubobject<USceneComponent>(TEXT("CameraParent"));
+    CameraParent->SetupAttachment(RootComponent);
     VRCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("VRCamera"));
-    VRCamera->SetupAttachment(RootComponent);
+    VRCamera->SetupAttachment(CameraParent);
     VRCamera->bUsePawnControlRotation = false;
     VRCamera->AddLocalOffset(FVector::UpVector * 80);
     VRCamera->bLockToHmd = true;
@@ -94,7 +96,7 @@ void AVRPawn::BeginPlay()
     CheckConnectable(0, true);
     CheckConnectable(0, true);
 
-    UE_LOG(LogTemp, Log, TEXT("ver.1"));
+    UE_LOG(LogTemp, Log, TEXT("ver.2"));
 
     if (MotionController[0]) {
         UE_LOG(LogTemp, Log, TEXT("MotionController[0] is found."));
@@ -129,12 +131,12 @@ void AVRPawn::RecenterHMDOffset()
     UHeadMountedDisplayFunctionLibrary::GetOrientationAndPosition(DeviceRotation, DevicePosition);
 
     // 親コンポーネントへのポインタ取得（例: CapsuleComponent）
-    if (CapsuleComponent)
+    if (CameraParent)
     {
         // 位置を打ち消し
-        CapsuleComponent->SetRelativeLocation(-DevicePosition);
-        MotionControllerMisalignment[0] = DevicePosition;
-        MotionControllerMisalignment[1] = DevicePosition;
+        CameraParent->SetRelativeLocation(-DevicePosition);
+        //MotionControllerMisalignment[0] = DevicePosition;
+        //MotionControllerMisalignment[1] = DevicePosition;
 
         // 回転を打ち消し
         //FQuat InvQuat = DeviceRotation.Quaternion().Inverse();
