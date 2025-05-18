@@ -92,7 +92,7 @@ void AVRPawn::BeginPlay()
     CheckConnectable(0, true);
     CheckConnectable(0, true);
 
-    UE_LOG(LogTemp, Log, TEXT("ver.1.2"));
+    UE_LOG(LogTemp, Log, TEXT("ver.2.0"));
 
     if (MotionController[0]) {
         UE_LOG(LogTemp, Log, TEXT("MotionController[0] is found."));
@@ -194,6 +194,11 @@ void AVRPawn::Tick(float deltaTime)
 
     // 風切り音の再生
     WindAudio->SetVolumeMultiplier(CurrentVelocity.Size() / 5000);
+
+
+
+    // カメラ位置補正
+    VRCamera->SetRelativeLocation(FVector::UpVector * 80);
 }
 
 
