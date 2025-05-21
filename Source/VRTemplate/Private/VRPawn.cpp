@@ -33,7 +33,6 @@ AVRPawn::AVRPawn()
     VRCamera->SetupAttachment(RootComponent);
     VRCamera->bUsePawnControlRotation = false;
     VRCamera->AddLocalOffset(FVector::UpVector * 80);
-    VRCamera->bLockToHmd = true;
 
     // コントローラー
     MotionController.SetNum(2);
@@ -79,7 +78,6 @@ AVRPawn::AVRPawn()
     CurrentWireLength.SetNum(2);
     AttachWireLength.SetNum(2);
     StaticAnchorLocation.SetNum(2);
-    MotionControllerMisalignment.SetNum(2);
 }
 
 
@@ -94,7 +92,7 @@ void AVRPawn::BeginPlay()
     CheckConnectable(0, true);
     CheckConnectable(0, true);
 
-    UE_LOG(LogTemp, Log, TEXT("ver.1"));
+    UE_LOG(LogTemp, Log, TEXT("ver.1.1"));
 
     if (MotionController[0]) {
         UE_LOG(LogTemp, Log, TEXT("MotionController[0] is found."));
@@ -110,36 +108,6 @@ void AVRPawn::BeginPlay()
         UE_LOG(LogTemp, Log, TEXT("MotionController[1] is not found!"));
     }
 
-    //UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();
-
-    // コントローラーのズレを記憶
-    //MotionControllerMisalignment[0] = MotionController[0]->GetRelativeLocation();
-    //MotionControllerMisalignment[1] = MotionController[1]->GetRelativeLocation();
-
-    //FTimerHandle TmpHandle;
-    //GetWorldTimerManager().SetTimer(TmpHandle, this, &AVRPawn::RecenterHMDOffset, 0.1f, false);
-    RecenterHMDOffset();
-}
-
-void AVRPawn::RecenterHMDOffset()
-{
-    // 現在のHMDトラッキングを取得
-    FRotator DeviceRotation;
-    FVector DevicePosition;
-    UHeadMountedDisplayFunctionLibrary::GetOrientationAndPosition(DeviceRotation, DevicePosition);
-
-    // 親コンポーネントへのポインタ取得（例: CapsuleComponent）
-    if (CapsuleComponent)
-    {
-        // 位置を打ち消し
-        CapsuleComponent->SetRelativeLocation(-DevicePosition);
-        MotionControllerMisalignment[0] = DevicePosition;
-        MotionControllerMisalignment[1] = DevicePosition;
-
-        // 回転を打ち消し
-        //FQuat InvQuat = DeviceRotation.Quaternion().Inverse();
-        //CapsuleComponent->SetRelativeRotation(InvQuat);
-    }
 }
 
 
@@ -228,24 +196,13 @@ void AVRPawn::Tick(float deltaTime)
     WindAudio->SetVolumeMultiplier(CurrentVelocity.Size() / 5000);
 
 
-
-    // カメラ位置補正
-    //VRCamera->SetRelativeLocation(FVector::UpVector * 80);
-
-
-    // カメラ回転
-    //FRotator DeviceRotation;
-    //FVector DevicePosition;
-    //UHeadMountedDisplayFunctionLibrary::GetOrientationAndPosition(DeviceRotation, DevicePosition);
-    //VRCamera->SetWorldRotation(DeviceRotation);
+    //UE_LOG(LogTemp, Log, TEXT("CurrentVelocity.Size:%f"), CurrentVelocity.Size());
+    UE_LOG(LogTemp, Log, TEXT("FPS:%f"), 1 / deltaTime);
 }
 
 
 void AVRPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
-
-    UE_LOG(LogTemp, Log, TEXT("入力割り当て　開始"));
-
     if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
 
         //ジャンプ
@@ -261,8 +218,6 @@ void AVRPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
         //ワイヤー巻き取り
         EnhancedInputComponent->BindAction(RetractWireAction_L, ETriggerEvent::Triggered, this, &AVRPawn::RetractWire_L);
         EnhancedInputComponent->BindAction(RetractWireAction_R, ETriggerEvent::Triggered, this, &AVRPawn::RetractWire_R);
-
-        UE_LOG(LogTemp, Log, TEXT("入力割り当て　完了"));
     }
 }
 
@@ -368,12 +323,6 @@ FVector AVRPawn::UpdateWireMovement(float deltaTime)
 //コントローラー位置を取得
 FVector AVRPawn::GetControllerLocation(int index) const
 {
-    /*
-    return 
-        MotionController[index] ? 
-        MotionController[index]->GetComponentLocation() - MotionControllerMisalignment[index] : 
-        GetActorLocation();
-    */
     return MotionController[index] ? MotionController[index]->GetComponentLocation() : GetActorLocation();
 }
 
@@ -388,11 +337,6 @@ FVector AVRPawn::GetControllerForward(int index) const
 // ワイヤー接続の切り替え
 void AVRPawn::ToggleWire(int index)
 {
-
-    UE_LOG(LogTemp, Log, TEXT("VRCamera Relative Location: %s"), *VRCamera->GetRelativeLocation().ToString());
-    UE_LOG(LogTemp, Log, TEXT("MotionControllerMisalignment[0]: %s"), *MotionController[0]->GetRelativeLocation().ToString());
-    UE_LOG(LogTemp, Log, TEXT("MotionControllerMisalignment[1]: %s"), *MotionController[1]->GetRelativeLocation().ToString());
-
     if (bWireAttached[index])
     {
         DetachWire(index);
