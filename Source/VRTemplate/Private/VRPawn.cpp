@@ -46,6 +46,7 @@ AVRPawn::AVRPawn()
     WireGun_L->SetupAttachment(MotionController[0]);
     WireGun_L->AddLocalOffset(FVector::UpVector * -5);
     WireGun_L->SetRelativeScale3D(FVector::OneVector * 0.1f);
+    WireGun_L->SetCollisionProfileName(TEXT("NoCollision"));
 
     // 右手コントローラー
     MotionController[1] = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("Controller_R"));
@@ -55,6 +56,7 @@ AVRPawn::AVRPawn()
     WireGun_R->SetupAttachment(MotionController[1]);
     WireGun_R->AddLocalOffset(FVector::UpVector * -5);
     WireGun_R->SetRelativeScale3D(FVector::OneVector * 0.1f);
+    WireGun_R->SetCollisionProfileName(TEXT("NoCollision"));
 
     // ワイヤー用の Spline Mesh の作成
     SplineMeshComponent.SetNum(2);
