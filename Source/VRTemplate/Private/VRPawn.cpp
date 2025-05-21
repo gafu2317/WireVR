@@ -45,7 +45,7 @@ AVRPawn::AVRPawn()
     MotionController[0]->SetupAttachment(RootComponent);
     MotionController[0]->SetTrackingSource(EControllerHand::Left);
     WireGun_L = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WireGun_L"));
-    WireGun_L->SetupAttachment(MotionController[0]);
+    WireGun_L->SetupAttachment(RootComponent);
     WireGun_L->AddLocalOffset(FVector::UpVector * -5);
     WireGun_L->SetRelativeScale3D(FVector::OneVector * 0.1f);
 
@@ -54,7 +54,7 @@ AVRPawn::AVRPawn()
     MotionController[1]->SetupAttachment(RootComponent);
     MotionController[1]->SetTrackingSource(EControllerHand::Right);
     WireGun_R = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WireGun_R"));
-    WireGun_R->SetupAttachment(MotionController[1]);
+    WireGun_R->SetupAttachment(RootComponent);
     WireGun_R->AddLocalOffset(FVector::UpVector * -5);
     WireGun_R->SetRelativeScale3D(FVector::OneVector * 0.1f);
 
@@ -76,6 +76,7 @@ AVRPawn::AVRPawn()
     WindAudio->SetupAttachment(RootComponent);
 
     //その他配列の確保
+    bActiveController.SetNum(2);
     bWireAttached.SetNum(2);
     bPrevConnectable.SetNum(2);
     CurrentWireLength.SetNum(2);
@@ -92,11 +93,15 @@ void AVRPawn::BeginPlay()
     // 傾斜判定用sin値を事前計算
     SlopeSin = sinf(SlopeLimit / 180 * PI);
 
+    // ワイヤー銃を非アクティブに
+    bActiveController[0] = false;
+    bActiveController[1] = false;
+
     // ワイヤー表示更新
     CheckConnectable(0, true);
     CheckConnectable(0, true);
 
-    UE_LOG(LogTemp, Log, TEXT("ver.10"));
+    UE_LOG(LogTemp, Log, TEXT("ver.11"));
 
     if (MotionController[0]) {
         UE_LOG(LogTemp, Log, TEXT("MotionController[0] is found."));
