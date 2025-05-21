@@ -12,6 +12,7 @@
 #include "Components/Image.h"
 #include "InputActionValue.h"
 #include "Components/AudioComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
 
 // Sets default values
@@ -78,6 +79,20 @@ AVRPawn::AVRPawn()
     CharacterBody->SetCollisionProfileName(TEXT("NoCollision"));
     CharacterBody->AddLocalOffset(FVector::UpVector * -80);
     CharacterBody->SetOwnerNoSee(true);
+    CharacterHand_L = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CharacterHand_L"));
+    CharacterHand_R = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CharacterHand_R"));
+    CharacterHand_L->SetupAttachment(MotionController[0]);
+    CharacterHand_R->SetupAttachment(MotionController[1]);
+    CharacterHand_L->SetCollisionProfileName(TEXT("NoCollision"));
+    CharacterHand_R->SetCollisionProfileName(TEXT("NoCollision"));
+    CharacterHand_L->SetOwnerNoSee(true);
+    CharacterHand_R->SetOwnerNoSee(true);
+    CharacterShoulder_L = CreateDefaultSubobject<USceneComponent>(TEXT("CharacterShoulder_L"));
+    CharacterShoulder_R = CreateDefaultSubobject<USceneComponent>(TEXT("CharacterShoulder_R"));
+    CharacterShoulder_L->SetupAttachment(RootComponent);
+    CharacterShoulder_R->SetupAttachment(RootComponent);
+    CharacterShoulder_L->AddLocalOffset(FVector::RightVector * -40);
+    CharacterShoulder_R->AddLocalOffset(FVector::RightVector * 40);
 
     //その他配列の確保
     bWireAttached.SetNum(2);
@@ -203,8 +218,15 @@ void AVRPawn::Tick(float deltaTime)
     WindAudio->SetVolumeMultiplier(CurrentVelocity.Size() / 5000);
 
 
-    //UE_LOG(LogTemp, Log, TEXT("CurrentVelocity.Size:%f"), CurrentVelocity.Size());
-    UE_LOG(LogTemp, Log, TEXT("FPS:%f"), 1 / deltaTime);
+    // 腕の向きを調整
+    FVector StartLocation = CharacterHand_L->GetComponentLocation();
+    FVector TargetLocation = CharacterShoulder_L->GetComponentLocation();
+    FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(StartLocation, TargetLocation);
+    CharacterHand_L->SetWorldRotation(LookAtRotation);
+    StartLocation = CharacterHand_R->GetComponentLocation();
+    TargetLocation = CharacterShoulder_R->GetComponentLocation();
+    LookAtRotation = UKismetMathLibrary::FindLookAtRotation(StartLocation, TargetLocation);
+    CharacterHand_R->SetWorldRotation(LookAtRotation);
 }
 
 

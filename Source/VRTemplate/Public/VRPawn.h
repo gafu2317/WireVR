@@ -164,4 +164,12 @@ private:
 
     UPROPERTY(EditAnywhere, Category = "Character")
     UStaticMeshComponent* CharacterBody; // キャラクターの体
+    UPROPERTY(EditAnywhere, Category = "Character")
+    UStaticMeshComponent* CharacterHand_L; // キャラクターの左手
+    UPROPERTY(EditAnywhere, Category = "Character")
+    UStaticMeshComponent* CharacterHand_R; // キャラクターの右手
+    UPROPERTY(EditAnywhere, Category = "Character")
+    USceneComponent* CharacterShoulder_L; // キャラクターの左肩
+    UPROPERTY(EditAnywhere, Category = "Character")
+    USceneComponent* CharacterShoulder_R; // キャラクターの右肩
 };
