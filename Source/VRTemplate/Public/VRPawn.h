@@ -56,6 +56,8 @@ protected:
     virtual void Tick(float deltaTime) override;
     virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
+    void RecenterHMDOffset();
+
     // ワイヤー接続可否判定
     void CheckConnectable(int index, bool bForceUpdate);
 
@@ -88,6 +90,7 @@ private:
     UCapsuleComponent* CapsuleComponent;
     UPROPERTY(EditAnywhere)
     UCameraComponent* VRCamera;
+    UPROPERTY(VisibleAnywhere)
     UMovementComponent* MovementComponent;
 
     FVector CurrentVelocity = FVector::ZeroVector;
@@ -139,6 +142,7 @@ private:
     // モーションコントローラー（左/右）
     UPROPERTY(VisibleAnywhere, Category = "Controller")
     TArray <UMotionControllerComponent*> MotionController;
+    TArray <FVector> MotionControllerMisalignment;
 
     // ワイヤー銃（左/右）
     UPROPERTY(EditAnywhere, Category = "Controller")
