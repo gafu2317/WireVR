@@ -56,8 +56,6 @@ protected:
     virtual void Tick(float deltaTime) override;
     virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
-    void RecenterHMDOffset();
-
     // ワイヤー接続可否判定
     void CheckConnectable(int index, bool bForceUpdate);
 
@@ -88,10 +86,10 @@ protected:
 private:
     UPROPERTY(VisibleAnywhere)
     UCapsuleComponent* CapsuleComponent;
-    UPROPERTY(EditAnywhere)
-    UCameraComponent* VRCamera;
     UPROPERTY(VisibleAnywhere)
     UMovementComponent* MovementComponent;
+    UPROPERTY(VisibleAnywhere)
+    UCameraComponent* VRCamera;
 
     FVector CurrentVelocity = FVector::ZeroVector;
     float SlopeSin;
@@ -142,7 +140,6 @@ private:
     // モーションコントローラー（左/右）
     UPROPERTY(VisibleAnywhere, Category = "Controller")
     TArray <UMotionControllerComponent*> MotionController;
-    TArray <FVector> MotionControllerMisalignment;
 
     // ワイヤー銃（左/右）
     UPROPERTY(EditAnywhere, Category = "Controller")
@@ -164,4 +161,15 @@ private:
 
     UPROPERTY(EditAnywhere, Category = "Sound Effect")
     UAudioComponent* WindAudio; // 風のオーディオ
+
+    UPROPERTY(EditAnywhere, Category = "Character")
+    UStaticMeshComponent* CharacterBody; // キャラクターの体
+    UPROPERTY(EditAnywhere, Category = "Character")
+    UStaticMeshComponent* CharacterHand_L; // キャラクターの左手
+    UPROPERTY(EditAnywhere, Category = "Character")
+    UStaticMeshComponent* CharacterHand_R; // キャラクターの右手
+    UPROPERTY(EditAnywhere, Category = "Character")
+    USceneComponent* CharacterShoulder_L; // キャラクターの左肩
+    UPROPERTY(EditAnywhere, Category = "Character")
+    USceneComponent* CharacterShoulder_R; // キャラクターの右肩
 };
