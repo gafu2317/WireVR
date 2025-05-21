@@ -121,6 +121,9 @@ private:
 
     /* 左右の区別がある場合は左が[0]で右が[1]とする */
 
+    // コントローラーの座標補正が済んでいるか
+    TArray<bool> bActiveController;
+
     // ワイヤーが接続されているか
     TArray<bool> bWireAttached;
 
