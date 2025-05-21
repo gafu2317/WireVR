@@ -21,7 +21,7 @@ AVRPawn::AVRPawn()
 
     CapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Capsule"));
     RootComponent = CapsuleComponent;
-    CapsuleComponent->InitCapsuleSize(42.f, 96.0f);
+    CapsuleComponent->InitCapsuleSize(50.f, 85.0f);
     CapsuleComponent->SetEnableGravity(false);
     CapsuleComponent->SetCollisionProfileName(TEXT("BlockAll"));
 
@@ -32,7 +32,7 @@ AVRPawn::AVRPawn()
     VRCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("VRCamera"));
     VRCamera->SetupAttachment(RootComponent);
     VRCamera->bUsePawnControlRotation = false;
-    VRCamera->AddLocalOffset(FVector::UpVector * 80);
+    VRCamera->AddLocalOffset(FVector::UpVector * 45);
 
     // コントローラー
     MotionController.SetNum(2);
@@ -71,6 +71,13 @@ AVRPawn::AVRPawn()
     WireAttachAudio->SetupAttachment(RootComponent);
     WindAudio = CreateDefaultSubobject<UAudioComponent>(TEXT("WindAudio"));
     WindAudio->SetupAttachment(RootComponent);
+
+    // キャラクター
+    CharacterBody = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CharacterBody"));
+    CharacterBody->SetupAttachment(RootComponent);
+    CharacterBody->SetCollisionProfileName(TEXT("NoCollision"));
+    CharacterBody->AddLocalOffset(FVector::UpVector * -80);
+    CharacterBody->SetOwnerNoSee(true);
 
     //その他配列の確保
     bWireAttached.SetNum(2);

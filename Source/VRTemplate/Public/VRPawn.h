@@ -86,7 +86,9 @@ protected:
 private:
     UPROPERTY(VisibleAnywhere)
     UCapsuleComponent* CapsuleComponent;
+    UPROPERTY(VisibleAnywhere)
     UMovementComponent* MovementComponent;
+    UPROPERTY(VisibleAnywhere)
     UCameraComponent* VRCamera;
 
     FVector CurrentVelocity = FVector::ZeroVector;
@@ -159,4 +161,7 @@ private:
 
     UPROPERTY(EditAnywhere, Category = "Sound Effect")
     UAudioComponent* WindAudio; // 風のオーディオ
+
+    UPROPERTY(EditAnywhere, Category = "Character")
+    UStaticMeshComponent* CharacterBody; // キャラクターの体
 };
