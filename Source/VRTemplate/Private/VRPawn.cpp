@@ -12,6 +12,7 @@
 #include "Components/Image.h"
 #include "InputActionValue.h"
 #include "Components/AudioComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
 
 // Sets default values
@@ -21,7 +22,7 @@ AVRPawn::AVRPawn()
 
     CapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Capsule"));
     RootComponent = CapsuleComponent;
-    CapsuleComponent->InitCapsuleSize(42.f, 96.0f);
+    CapsuleComponent->InitCapsuleSize(50.f, 85.0f);
     CapsuleComponent->SetEnableGravity(false);
     CapsuleComponent->SetCollisionProfileName(TEXT("BlockAll"));
 
@@ -32,7 +33,7 @@ AVRPawn::AVRPawn()
     VRCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("VRCamera"));
     VRCamera->SetupAttachment(RootComponent);
     VRCamera->bUsePawnControlRotation = false;
-    VRCamera->AddLocalOffset(FVector::UpVector * 80);
+    VRCamera->AddLocalOffset(FVector::UpVector * 45);
 
     // コントローラー
     MotionController.SetNum(2);
@@ -45,6 +46,7 @@ AVRPawn::AVRPawn()
     WireGun_L->SetupAttachment(MotionController[0]);
     WireGun_L->AddLocalOffset(FVector::UpVector * -5);
     WireGun_L->SetRelativeScale3D(FVector::OneVector * 0.1f);
+    WireGun_L->SetCollisionProfileName(TEXT("NoCollision"));
 
     // 右手コントローラー
     MotionController[1] = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("Controller_R"));
@@ -54,6 +56,7 @@ AVRPawn::AVRPawn()
     WireGun_R->SetupAttachment(MotionController[1]);
     WireGun_R->AddLocalOffset(FVector::UpVector * -5);
     WireGun_R->SetRelativeScale3D(FVector::OneVector * 0.1f);
+    WireGun_R->SetCollisionProfileName(TEXT("NoCollision"));
 
     // ワイヤー用の Spline Mesh の作成
     SplineMeshComponent.SetNum(2);
@@ -71,6 +74,27 @@ AVRPawn::AVRPawn()
     WireAttachAudio->SetupAttachment(RootComponent);
     WindAudio = CreateDefaultSubobject<UAudioComponent>(TEXT("WindAudio"));
     WindAudio->SetupAttachment(RootComponent);
+
+    // キャラクター
+    CharacterBody = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CharacterBody"));
+    CharacterBody->SetupAttachment(RootComponent);
+    CharacterBody->SetCollisionProfileName(TEXT("NoCollision"));
+    CharacterBody->AddLocalOffset(FVector::UpVector * -80);
+    CharacterBody->SetOwnerNoSee(true);
+    CharacterHand_L = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CharacterHand_L"));
+    CharacterHand_R = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CharacterHand_R"));
+    CharacterHand_L->SetupAttachment(MotionController[0]);
+    CharacterHand_R->SetupAttachment(MotionController[1]);
+    CharacterHand_L->SetCollisionProfileName(TEXT("NoCollision"));
+    CharacterHand_R->SetCollisionProfileName(TEXT("NoCollision"));
+    CharacterHand_L->SetOwnerNoSee(true);
+    CharacterHand_R->SetOwnerNoSee(true);
+    CharacterShoulder_L = CreateDefaultSubobject<USceneComponent>(TEXT("CharacterShoulder_L"));
+    CharacterShoulder_R = CreateDefaultSubobject<USceneComponent>(TEXT("CharacterShoulder_R"));
+    CharacterShoulder_L->SetupAttachment(RootComponent);
+    CharacterShoulder_R->SetupAttachment(RootComponent);
+    CharacterShoulder_L->AddLocalOffset(FVector::RightVector * -40);
+    CharacterShoulder_R->AddLocalOffset(FVector::RightVector * 40);
 
     //その他配列の確保
     bWireAttached.SetNum(2);
@@ -92,7 +116,7 @@ void AVRPawn::BeginPlay()
     CheckConnectable(0, true);
     CheckConnectable(0, true);
 
-    UE_LOG(LogTemp, Log, TEXT("ver.1.2"));
+    UE_LOG(LogTemp, Log, TEXT("ver.1.1"));
 
     if (MotionController[0]) {
         UE_LOG(LogTemp, Log, TEXT("MotionController[0] is found."));
@@ -194,14 +218,22 @@ void AVRPawn::Tick(float deltaTime)
 
     // 風切り音の再生
     WindAudio->SetVolumeMultiplier(CurrentVelocity.Size() / 5000);
+
+
+    // 腕の向きを調整
+    FVector StartLocation = CharacterHand_L->GetComponentLocation();
+    FVector TargetLocation = CharacterShoulder_L->GetComponentLocation();
+    FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(StartLocation, TargetLocation);
+    CharacterHand_L->SetWorldRotation(LookAtRotation);
+    StartLocation = CharacterHand_R->GetComponentLocation();
+    TargetLocation = CharacterShoulder_R->GetComponentLocation();
+    LookAtRotation = UKismetMathLibrary::FindLookAtRotation(StartLocation, TargetLocation);
+    CharacterHand_R->SetWorldRotation(LookAtRotation);
 }
 
 
 void AVRPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
-
-    UE_LOG(LogTemp, Log, TEXT("入力割り当て　開始"));
-
     if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
 
         //ジャンプ
@@ -217,8 +249,6 @@ void AVRPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
         //ワイヤー巻き取り
         EnhancedInputComponent->BindAction(RetractWireAction_L, ETriggerEvent::Triggered, this, &AVRPawn::RetractWire_L);
         EnhancedInputComponent->BindAction(RetractWireAction_R, ETriggerEvent::Triggered, this, &AVRPawn::RetractWire_R);
-
-        UE_LOG(LogTemp, Log, TEXT("入力割り当て　完了"));
     }
 }
 
@@ -338,9 +368,6 @@ FVector AVRPawn::GetControllerForward(int index) const
 // ワイヤー接続の切り替え
 void AVRPawn::ToggleWire(int index)
 {
-
-    UE_LOG(LogTemp, Log, TEXT("VRCamera Relative Location: %s"), *VRCamera->GetRelativeLocation().ToString());
-
     if (bWireAttached[index])
     {
         DetachWire(index);

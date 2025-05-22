@@ -86,9 +86,10 @@ protected:
 private:
     UPROPERTY(VisibleAnywhere)
     UCapsuleComponent* CapsuleComponent;
-    UPROPERTY(EditAnywhere)
-    UCameraComponent* VRCamera;
+    UPROPERTY(VisibleAnywhere)
     UMovementComponent* MovementComponent;
+    UPROPERTY(VisibleAnywhere)
+    UCameraComponent* VRCamera;
 
     FVector CurrentVelocity = FVector::ZeroVector;
     float SlopeSin;
@@ -160,4 +161,15 @@ private:
 
     UPROPERTY(EditAnywhere, Category = "Sound Effect")
     UAudioComponent* WindAudio; // 風のオーディオ
+
+    UPROPERTY(EditAnywhere, Category = "Character")
+    UStaticMeshComponent* CharacterBody; // キャラクターの体
+    UPROPERTY(EditAnywhere, Category = "Character")
+    UStaticMeshComponent* CharacterHand_L; // キャラクターの左手
+    UPROPERTY(EditAnywhere, Category = "Character")
+    UStaticMeshComponent* CharacterHand_R; // キャラクターの右手
+    UPROPERTY(EditAnywhere, Category = "Character")
+    USceneComponent* CharacterShoulder_L; // キャラクターの左肩
+    UPROPERTY(EditAnywhere, Category = "Character")
+    USceneComponent* CharacterShoulder_R; // キャラクターの右肩
 };
