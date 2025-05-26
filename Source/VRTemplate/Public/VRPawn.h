@@ -85,6 +85,7 @@ private:
     FVector CurrentVelocity = FVector::ZeroVector;
     float SlopeSin;
     bool bGrounded;
+    APlayerController* PC;
 
     UPROPERTY(EditAnywhere, Category = "Move Settings")
     float MoveSpeed = 500;
@@ -157,4 +158,15 @@ private:
     USceneComponent* CharacterShoulder_L; // キャラクターの左肩
     UPROPERTY(EditAnywhere, Category = "Character")
     USceneComponent* CharacterShoulder_R; // キャラクターの右肩
+
+    // ワイヤー接続時の振動
+    UPROPERTY(EditAnywhere, Category = "ForceFeedbackEffect")
+    UForceFeedbackEffect* FFE_AttachWire_L;
+    UPROPERTY(EditAnywhere, Category = "ForceFeedbackEffect")
+    UForceFeedbackEffect* FFE_AttachWire_R;
+    // ワイヤー巻取り時の振動
+    UPROPERTY(EditAnywhere, Category = "ForceFeedbackEffect")
+    UForceFeedbackEffect* FFE_Retract_L;
+    UPROPERTY(EditAnywhere, Category = "ForceFeedbackEffect")
+    UForceFeedbackEffect* FFE_Retract_R;
 };

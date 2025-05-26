@@ -14,6 +14,7 @@
 #include "Components/AudioComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AVRPawn::AVRPawn()
@@ -115,7 +116,10 @@ void AVRPawn::BeginPlay()
     CheckConnectable(0, true);
     CheckConnectable(1, true);
 
-    UE_LOG(LogTemp, Log, TEXT("ver.2"));
+    // プレイヤーコントローラーの取得
+    PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+
+    UE_LOG(LogTemp, Log, TEXT("ver.3"));
 
     if (MotionController[0]) {
         UE_LOG(LogTemp, Log, TEXT("MotionController[0] is found."));
@@ -310,6 +314,15 @@ void AVRPawn::AttachWire(int index)
         // 効果音の再生
         WireAttachAudio->Stop();
         WireAttachAudio->Play(0.0f);
+
+        // コントローラーの振動
+        FForceFeedbackParameters vibrationSetting;
+        vibrationSetting.bLooping = false;
+        vibrationSetting.Tag = "AttachWire_" + index; // 任意のタグ
+        PC->ClientPlayForceFeedback(index == 0 ? FFE_AttachWire_L : FFE_AttachWire_R, vibrationSetting);
+        vibrationSetting.bLooping = false;
+        vibrationSetting.Tag = "Retract_" + index; // 任意のタグ
+        PC->ClientPlayForceFeedback(index == 0 ? FFE_Retract_L : FFE_Retract_R, vibrationSetting);
     }
 }
 
@@ -322,6 +335,9 @@ void AVRPawn::DetachWire(int index)
 
     // マテリアルの切り替え
     CheckConnectable(index, true);
+
+    // コントローラーの振動の停止
+    PC->ClientStopForceFeedback(index == 0 ? FFE_Retract_L : FFE_Retract_R, FName("Retract_" + index));
 }
 
 
