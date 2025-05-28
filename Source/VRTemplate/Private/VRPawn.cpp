@@ -119,7 +119,7 @@ void AVRPawn::BeginPlay()
     // プレイヤーコントローラーの取得
     PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 
-    UE_LOG(LogTemp, Log, TEXT("ver.3"));
+    UE_LOG(LogTemp, Log, TEXT("ver.4"));
 
     if (MotionController[0]) {
         UE_LOG(LogTemp, Log, TEXT("MotionController[0] is found."));
@@ -231,6 +231,18 @@ void AVRPawn::Tick(float deltaTime)
             StaticAnchorLocation[1], FVector::ZeroVector
         );
 
+    // 体の向きを調整
+    if (VRCamera && CharacterBody)
+    {
+        // カメラの回転取得
+        FRotator CameraRotation = VRCamera->GetComponentRotation();
+
+        // Z軸（Yaw）だけ取り出し、他を固定
+        FRotator NewRotation(0.0f, CameraRotation.Yaw, 0.0f);
+
+        // 回転を適用
+        CharacterBody->SetWorldRotation(NewRotation);
+    }
 
     // 腕の向きを調整
     FVector StartLocation = CharacterHand_L->GetComponentLocation();
