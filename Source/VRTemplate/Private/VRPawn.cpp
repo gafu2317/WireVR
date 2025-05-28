@@ -119,7 +119,7 @@ void AVRPawn::BeginPlay()
     // プレイヤーコントローラーの取得
     PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 
-    UE_LOG(LogTemp, Log, TEXT("ver.4"));
+    UE_LOG(LogTemp, Log, TEXT("ver.5"));
 
     if (MotionController[0]) {
         UE_LOG(LogTemp, Log, TEXT("MotionController[0] is found."));
@@ -330,10 +330,10 @@ void AVRPawn::AttachWire(int index)
         // コントローラーの振動
         FForceFeedbackParameters vibrationSetting;
         vibrationSetting.bLooping = false;
-        vibrationSetting.Tag = "AttachWire_" + index; // 任意のタグ
+        vibrationSetting.Tag = FName("AttachWire_" + FString::FromInt(index)); // 任意のタグ
         PC->ClientPlayForceFeedback(index == 0 ? FFE_AttachWire_L : FFE_AttachWire_R, vibrationSetting);
         vibrationSetting.bLooping = false;
-        vibrationSetting.Tag = "Retract_" + index; // 任意のタグ
+        vibrationSetting.Tag = FName("Retract_" + FString::FromInt(index)); // 任意のタグ
         PC->ClientPlayForceFeedback(index == 0 ? FFE_Retract_L : FFE_Retract_R, vibrationSetting);
     }
 }
@@ -349,7 +349,7 @@ void AVRPawn::DetachWire(int index)
     CheckConnectable(index, true);
 
     // コントローラーの振動の停止
-    PC->ClientStopForceFeedback(index == 0 ? FFE_Retract_L : FFE_Retract_R, FName("Retract_" + index));
+    PC->ClientStopForceFeedback(index == 0 ? FFE_Retract_L : FFE_Retract_R, FName("Retract_" + FString::FromInt(index)));
 }
 
 
