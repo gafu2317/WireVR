@@ -20,11 +20,11 @@
 AVRPawn::AVRPawn()
 {
     PrimaryActorTick.bCanEverTick = true;
-    SetReplicateMovement(false);
+    //SetReplicateMovement(false);
 
     CapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Capsule"));
     RootComponent = CapsuleComponent;
-    CapsuleComponent->InitCapsuleSize(100.f, 85.0f);
+    CapsuleComponent->InitCapsuleSize(100.f, 95.0f);
     CapsuleComponent->SetEnableGravity(false);
     CapsuleComponent->SetCollisionProfileName(TEXT("InvisibleWall"));
 
@@ -49,6 +49,7 @@ AVRPawn::AVRPawn()
     WireGun_L->AddLocalOffset(FVector::UpVector * -5);
     WireGun_L->SetRelativeScale3D(FVector::OneVector * 0.1f);
     WireGun_L->SetCollisionProfileName(TEXT("NoCollision"));
+    WireGun_L->SetIsReplicated(true);
 
     // 右手コントローラー
     MotionController[1] = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("Controller_R"));
@@ -59,6 +60,7 @@ AVRPawn::AVRPawn()
     WireGun_R->AddLocalOffset(FVector::UpVector * -5);
     WireGun_R->SetRelativeScale3D(FVector::OneVector * 0.1f);
     WireGun_R->SetCollisionProfileName(TEXT("NoCollision"));
+    WireGun_R->SetIsReplicated(true);
 
     // ワイヤー用の Spline Mesh の作成
     SplineMeshComponent.SetNum(2);
@@ -70,6 +72,19 @@ AVRPawn::AVRPawn()
     SplineMeshComponent[1]->SetStartScale(FVector2D::UnitVector * 0.005);
     SplineMeshComponent[1]->SetEndScale(FVector2D::UnitVector * 0.005);
     SplineMeshComponent[1]->CastShadow = false;
+    StaticMeshComponent_Rep.SetNum(2);
+    StaticMeshComponent_Rep[0] = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent_Rep_L"));
+    StaticMeshComponent_Rep[0]->CastShadow = false;
+    StaticMeshComponent_Rep[0]->SetVisibility(false);
+    StaticMeshComponent_Rep[0]->SetIsReplicated(true);
+    StaticMeshComponent_Rep[0]->SetupAttachment(MotionController[0]);
+    StaticMeshComponent_Rep[0]->SetOwnerNoSee(true);
+    StaticMeshComponent_Rep[1] = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent_Rep_R"));
+    StaticMeshComponent_Rep[1]->CastShadow = false;
+    StaticMeshComponent_Rep[1]->SetVisibility(false);
+    StaticMeshComponent_Rep[1]->SetIsReplicated(true);
+    StaticMeshComponent_Rep[1]->SetupAttachment(MotionController[1]);
+    StaticMeshComponent_Rep[1]->SetOwnerNoSee(true);
 
     // オーディオ関係
     WireAttachAudio = CreateDefaultSubobject<UAudioComponent>(TEXT("WireAttachAudio"));
@@ -91,12 +106,14 @@ AVRPawn::AVRPawn()
     CharacterHand_R->SetCollisionProfileName(TEXT("NoCollision"));
     CharacterHand_L->SetOwnerNoSee(true);
     CharacterHand_R->SetOwnerNoSee(true);
+    CharacterHand_L->SetIsReplicated(true);
+    CharacterHand_R->SetIsReplicated(true);
     CharacterShoulder_L = CreateDefaultSubobject<USceneComponent>(TEXT("CharacterShoulder_L"));
     CharacterShoulder_R = CreateDefaultSubobject<USceneComponent>(TEXT("CharacterShoulder_R"));
-    CharacterShoulder_L->SetupAttachment(CharacterBody);
-    CharacterShoulder_R->SetupAttachment(CharacterBody);
     CharacterShoulder_L->AddLocalOffset(FVector::RightVector * -40);
     CharacterShoulder_R->AddLocalOffset(FVector::RightVector * 40);
+    CharacterShoulder_L->SetupAttachment(CharacterBody);
+    CharacterShoulder_R->SetupAttachment(CharacterBody);
 
     //その他配列の確保
     bWireAttached.SetNum(2);
@@ -120,6 +137,8 @@ void AVRPawn::BeginPlay()
     // プレイヤーコントローラーの取得
     PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 
+    WindAudio->SetVolumeMultiplier(0);
+
     UE_LOG(LogTemp, Log, TEXT("ver.6"));
 
     if (MotionController[0]) {
@@ -141,6 +160,9 @@ void AVRPawn::BeginPlay()
 
 void AVRPawn::Tick(float deltaTime)
 {
+    // 自身のものしか実行しない
+    if (!IsLocallyControlled()) return;
+
     Super::Tick(deltaTime);
 
     // 重力演算
@@ -540,14 +562,14 @@ void AVRPawn::SyncWithServer_Tf_Implementation(
     CharacterHand_R->SetWorldRotation(LookAtRotation);
 
     // ワイヤー描画
-    SplineMeshComponent[0]->SetStartAndEnd(
-        controllerForward_L, FVector::ZeroVector,
-        StaticAnchorLocation[0], FVector::ZeroVector
-    );
-    SplineMeshComponent[1]->SetStartAndEnd(
-        controllerForward_R, FVector::ZeroVector,
-        StaticAnchorLocation[1], FVector::ZeroVector
-    );
+    LookAtRotation = UKismetMathLibrary::FindLookAtRotation(controllerPos_L, StaticAnchorLocation[0]);
+    StaticMeshComponent_Rep[0]->SetWorldRotation(LookAtRotation);
+    float wireLength = (StaticAnchorLocation[0] - controllerPos_L).Size();
+    StaticMeshComponent_Rep[0]->SetRelativeScale3D(FVector::OneVector + FVector::ForwardVector * (wireLength - 1));
+    LookAtRotation = UKismetMathLibrary::FindLookAtRotation(controllerPos_R, StaticAnchorLocation[1]);
+    StaticMeshComponent_Rep[1]->SetWorldRotation(LookAtRotation);
+    wireLength = (StaticAnchorLocation[1] - controllerPos_R).Size();
+    StaticMeshComponent_Rep[1]->SetRelativeScale3D(FVector::OneVector + FVector::ForwardVector * (wireLength - 1));
 }
 
 bool AVRPawn::SyncWithServer_Switch_Validate(int index, bool isAttach, FVector anchorPos)
@@ -560,9 +582,12 @@ void AVRPawn::SyncWithServer_Switch_Implementation(int index, bool isAttach, FVe
     if (IsLocallyControlled()) return;
 
     // ワイヤー表示の切り替え
-    SplineMeshComponent[index]->SetVisibility(isAttach);
+    StaticMeshComponent_Rep[index]->SetVisibility(isAttach);
 
-    // ワイヤー接続時はアンカー位置も格納
-    if (isAttach)
+    // ワイヤー接続時は
+    if (isAttach) 
+    {
+        // アンカー位置も格納
         StaticAnchorLocation[index] = anchorPos;
+    }
 }
