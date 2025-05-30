@@ -20,12 +20,13 @@
 AVRPawn::AVRPawn()
 {
     PrimaryActorTick.bCanEverTick = true;
+    SetReplicateMovement(false);
 
     CapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Capsule"));
     RootComponent = CapsuleComponent;
     CapsuleComponent->InitCapsuleSize(100.f, 85.0f);
     CapsuleComponent->SetEnableGravity(false);
-    CapsuleComponent->SetCollisionProfileName(TEXT("BlockAll"));
+    CapsuleComponent->SetCollisionProfileName(TEXT("InvisibleWall"));
 
     MovementComponent = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("MyMoveComp"));
     MovementComponent->SetUpdatedComponent(CapsuleComponent);
@@ -42,7 +43,7 @@ AVRPawn::AVRPawn()
     // 左手コントローラー
     MotionController[0] = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("Controller_L"));
     MotionController[0]->SetupAttachment(RootComponent);
-    MotionController[0]->SetTrackingSource(EControllerHand::Gun);
+    MotionController[0]->SetTrackingSource(EControllerHand::Left);
     WireGun_L = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WireGun_L"));
     WireGun_L->SetupAttachment(MotionController[0]);
     WireGun_L->AddLocalOffset(FVector::UpVector * -5);
@@ -52,7 +53,7 @@ AVRPawn::AVRPawn()
     // 右手コントローラー
     MotionController[1] = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("Controller_R"));
     MotionController[1]->SetupAttachment(RootComponent);
-    MotionController[1]->SetTrackingSource(EControllerHand::Gun);
+    MotionController[1]->SetTrackingSource(EControllerHand::Right);
     WireGun_R = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WireGun_R"));
     WireGun_R->SetupAttachment(MotionController[1]);
     WireGun_R->AddLocalOffset(FVector::UpVector * -5);
@@ -92,8 +93,8 @@ AVRPawn::AVRPawn()
     CharacterHand_R->SetOwnerNoSee(true);
     CharacterShoulder_L = CreateDefaultSubobject<USceneComponent>(TEXT("CharacterShoulder_L"));
     CharacterShoulder_R = CreateDefaultSubobject<USceneComponent>(TEXT("CharacterShoulder_R"));
-    CharacterShoulder_L->SetupAttachment(RootComponent);
-    CharacterShoulder_R->SetupAttachment(RootComponent);
+    CharacterShoulder_L->SetupAttachment(CharacterBody);
+    CharacterShoulder_R->SetupAttachment(CharacterBody);
     CharacterShoulder_L->AddLocalOffset(FVector::RightVector * -40);
     CharacterShoulder_R->AddLocalOffset(FVector::RightVector * 40);
 
@@ -119,7 +120,7 @@ void AVRPawn::BeginPlay()
     // プレイヤーコントローラーの取得
     PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 
-    UE_LOG(LogTemp, Log, TEXT("ver.5"));
+    UE_LOG(LogTemp, Log, TEXT("ver.6"));
 
     if (MotionController[0]) {
         UE_LOG(LogTemp, Log, TEXT("MotionController[0] is found."));
@@ -253,6 +254,17 @@ void AVRPawn::Tick(float deltaTime)
     TargetLocation = CharacterShoulder_R->GetComponentLocation();
     LookAtRotation = UKismetMathLibrary::FindLookAtRotation(StartLocation, TargetLocation);
     CharacterHand_R->SetWorldRotation(LookAtRotation);
+
+
+    // サーバーへの同期
+    SyncWithServer_Tf(
+        RootComponent->GetComponentLocation(),
+        CharacterBody->GetComponentRotation(),
+        GetControllerLocation(0),
+        GetControllerLocation(1),
+        GetControllerForward(0),
+        GetControllerForward(1)
+    );
 }
 
 
@@ -262,9 +274,6 @@ void AVRPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
         //ジャンプ
         EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AVRPawn::Jump);
-
-        //移動
-        EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AVRPawn::Move);
 
         //ワイヤー接続
         EnhancedInputComponent->BindAction(ConnectWireAction_L, ETriggerEvent::Started, this, &AVRPawn::AttachWire_L);
@@ -335,6 +344,9 @@ void AVRPawn::AttachWire(int index)
         vibrationSetting.bLooping = false;
         vibrationSetting.Tag = FName("Retract_" + FString::FromInt(index)); // 任意のタグ
         PC->ClientPlayForceFeedback(index == 0 ? FFE_Retract_L : FFE_Retract_R, vibrationSetting);
+
+        // サーバーへ同期
+        SyncWithServer_Switch(index, true, StaticAnchorLocation[index]);
     }
 }
 
@@ -350,6 +362,9 @@ void AVRPawn::DetachWire(int index)
 
     // コントローラーの振動の停止
     PC->ClientStopForceFeedback(index == 0 ? FFE_Retract_L : FFE_Retract_R, FName("Retract_" + FString::FromInt(index)));
+
+    // サーバーへ同期
+    SyncWithServer_Switch(index, false, FVector::ZeroVector);
 }
 
 
@@ -464,45 +479,6 @@ void AVRPawn::NotifyControllerChanged()
 }
 
 
-/* 開発用 */
-void AVRPawn::Move(const FInputActionValue& Value)
-{
-    // 接地状態でなければ移動不可
-    if (!bGrounded || CurrentVelocity.Z > JumpZSpeed - 10) return;
-
-    // input is a Vector2D
-    FVector2D MovementVector = Value.Get<FVector2D>();
-
-    if (MotionController[0] != nullptr)
-    {
-        // get forward vector
-        const FVector ForwardDirection = GetControllerForward(0) - GetControllerForward(0).Z;
-
-        // get right vector 
-        const FVector RightDirection = MotionController[0]->GetRightVector() - MotionController[0]->GetRightVector().Z;
-
-        // add movement 
-        CurrentVelocity = (ForwardDirection * MovementVector.Y + RightDirection * MovementVector.X) * MoveSpeed;
-    }
-
-    else if (Controller != nullptr)
-    {
-        // find out which way is forward
-        const FRotator Rotation = Controller->GetControlRotation();
-        const FRotator YawRotation(0, Rotation.Yaw, 0);
-
-        // get forward vector
-        const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-
-        // get right vector 
-        const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-
-        // add movement 
-        CurrentVelocity = (ForwardDirection * MovementVector.Y + RightDirection * MovementVector.X) * MoveSpeed;
-    }
-}
-
-
 void AVRPawn::Jump(const FInputActionValue& Value)
 {
     // 接地状態のみジャンプ可能
@@ -510,4 +486,83 @@ void AVRPawn::Jump(const FInputActionValue& Value)
     {
         CurrentVelocity += FVector::UpVector * JumpZSpeed;
     }
+}
+
+
+bool AVRPawn::SyncWithServer_Tf_Validate(
+    FVector rootPos,
+    FRotator bodyRotation,
+    FVector controllerPos_L,
+    FVector controllerPos_R,
+    FVector controllerForward_L,
+    FVector controllerForward_R
+)
+{
+    return true;
+}
+void AVRPawn::SyncWithServer_Tf_Implementation(
+    FVector rootPos,
+    FRotator bodyRotation,
+    FVector controllerPos_L,
+    FVector controllerPos_R,
+    FVector controllerForward_L,
+    FVector controllerForward_R
+    ) 
+{
+    // クライアントからの呼び出しにのみ応答
+    if (IsLocallyControlled()) return;
+
+
+    /* 位置や回転の算出・反映 */
+
+    // 本体の位置
+    RootComponent->SetWorldLocation(rootPos);
+
+    // 体のメッシュの回転
+    CharacterBody->SetWorldRotation(bodyRotation);
+
+    // コントローラーの位置と回転
+    MotionController[0]->SetWorldLocationAndRotation(
+        controllerPos_L, 
+        FRotationMatrix::MakeFromX(controllerForward_L).Rotator());
+    MotionController[1]->SetWorldLocationAndRotation(
+        controllerPos_R,
+        FRotationMatrix::MakeFromX(controllerForward_R).Rotator());
+
+    // 手の回転
+    FVector TargetLocation = CharacterShoulder_L->GetComponentLocation();
+    FRotator LookAtRotation = 
+        UKismetMathLibrary::FindLookAtRotation(controllerPos_L - controllerForward_L * 20, TargetLocation);
+    CharacterHand_L->SetWorldRotation(LookAtRotation);
+    TargetLocation = CharacterShoulder_R->GetComponentLocation();
+    LookAtRotation = 
+        UKismetMathLibrary::FindLookAtRotation(controllerPos_R - controllerForward_R * 20, TargetLocation);
+    CharacterHand_R->SetWorldRotation(LookAtRotation);
+
+    // ワイヤー描画
+    SplineMeshComponent[0]->SetStartAndEnd(
+        controllerForward_L, FVector::ZeroVector,
+        StaticAnchorLocation[0], FVector::ZeroVector
+    );
+    SplineMeshComponent[1]->SetStartAndEnd(
+        controllerForward_R, FVector::ZeroVector,
+        StaticAnchorLocation[1], FVector::ZeroVector
+    );
+}
+
+bool AVRPawn::SyncWithServer_Switch_Validate(int index, bool isAttach, FVector anchorPos)
+{
+    return true;
+}
+void AVRPawn::SyncWithServer_Switch_Implementation(int index, bool isAttach, FVector anchorPos)
+{
+    // クライアントからの呼び出しにのみ応答
+    if (IsLocallyControlled()) return;
+
+    // ワイヤー表示の切り替え
+    SplineMeshComponent[index]->SetVisibility(isAttach);
+
+    // ワイヤー接続時はアンカー位置も格納
+    if (isAttach)
+        StaticAnchorLocation[index] = anchorPos;
 }
