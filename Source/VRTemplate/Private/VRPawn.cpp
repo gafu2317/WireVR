@@ -591,3 +591,23 @@ void AVRPawn::SyncWithServer_Switch_Implementation(int index, bool isAttach, FVe
         StaticAnchorLocation[index] = anchorPos;
     }
 }
+
+
+void AVRPawn::ChangeBodyMaterial(UMaterialInterface* NewMaterial)
+{
+    if (NewMaterial) 
+    {
+        if (CharacterBody)
+        {
+            CharacterBody->SetMaterial(0, NewMaterial); // ElementIndex = 0 → 第一マテリアル
+        }
+        if (CharacterHand_L)
+        {
+            CharacterHand_L->SetMaterial(0, NewMaterial);
+        }
+        if (CharacterHand_R)
+        {
+            CharacterHand_R->SetMaterial(0, NewMaterial);
+        }
+    }
+}
