@@ -78,9 +78,13 @@ protected:
         FVector controllerForward_L,
         FVector controllerForward_R
     );
-
     UFUNCTION(Server, Reliable, WithValidation)
     void SyncWithServer_Switch(int index, bool isAttach, FVector anchorPos);
+
+
+    // スキン変更メソッド（ブループリントから呼び出し可能）
+    UFUNCTION(BlueprintCallable, Category = "Skin")
+    void ChangeBodyMaterial(UMaterialInterface* NewMaterial);
 
 
 private:
