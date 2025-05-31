@@ -9,6 +9,7 @@
 #include "Components/Image.h"
 #include "MotionControllerComponent.h"
 #include "Components/AudioComponent.h"
+//#include "Components/WidgetComponent.h"
 #include "VRPawn.generated.h"
 
 class UCameraComponent;
@@ -29,26 +30,18 @@ class VRTEMPLATE_API AVRPawn : public APawn
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
     UInputAction* JumpAction;
 
-    /** Move Input Action */
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-    UInputAction* MoveAction;
-
     /** Wire Input Action */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-    UInputAction* ToggleWireAction_L;
+    UInputAction* ConnectWireAction_L;
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-    UInputAction* ToggleWireAction_R;
-
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-    UInputAction* RetractWireAction_L;
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-    UInputAction* RetractWireAction_R;
+    UInputAction* ConnectWireAction_R;
 
 public:
     AVRPawn();
 
+    //virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 protected:
-    void Move(const FInputActionValue& Value); /* 開発用 */
     void Jump(const FInputActionValue& Value);
 
     virtual void NotifyControllerChanged() override;
@@ -59,8 +52,8 @@ protected:
     // ワイヤー接続可否判定
     void CheckConnectable(int index, bool bForceUpdate);
 
-    // ワイヤー機動の更新
-    FVector UpdateWireMovement(float deltaTime);
+    // ワイヤーを巻き取る
+    FVector RetractWire(int index, float deltaTime);
 
     // コントローラーのワールド座標を取得
     FVector GetControllerLocation(int index) const;
@@ -68,19 +61,40 @@ protected:
     // コントローラーの正面方向を取得
     FVector GetControllerForward(int index) const;
 
-    //ワイヤー接続の切り替え
-    void ToggleWire(int index);
-    void ToggleWire_L();
-    void ToggleWire_R();
-
-    // ワイヤー機動の開始・終了
+    // ワイヤー機動の開始
     void AttachWire(int index);
-    void DetachWire(int index);
+    void AttachWire_L();
+    void AttachWire_R();
 
-    // ワイヤーを巻き取る
-    void RetractWire(int index);
-    void RetractWire_L();
-    void RetractWire_R();
+    // ワイヤー機動の終了
+    void DetachWire(int index);
+    void DetachWire_L();
+    void DetachWire_R();
+
+    // サーバー側との同期
+    UFUNCTION(Server, Reliable, WithValidation)
+    void SyncWithServer_Tf(
+        FVector rootPos,
+        FRotator bodyRotation,
+        FVector controllerPos_L,
+        FVector controllerPos_R,
+        FVector controllerForward_L,
+        FVector controllerForward_R
+    );
+    UFUNCTION(Server, Reliable, WithValidation)
+    void SyncWithServer_Switch(int index, bool isAttach, FVector anchorPos);
+
+
+    // スキン変更メソッド（ブループリントから呼び出し可能）
+    UFUNCTION(BlueprintCallable, Category = "Skin")
+    void ChangeBodyMaterial(UMaterialInterface* NewMaterial);
+
+    // 名前同期時の処理
+    //UFUNCTION()
+    //void OnRep_PlayerName();
+
+    // UI側の名前表示を更新する
+    //void UpdateNameOnWidget();
 
 
 private:
@@ -94,9 +108,7 @@ private:
     FVector CurrentVelocity = FVector::ZeroVector;
     float SlopeSin;
     bool bGrounded;
-
-    UPROPERTY(EditAnywhere, Category = "Move Settings")
-    float MoveSpeed = 500;
+    APlayerController* PC;
 
     UPROPERTY(EditAnywhere, Category = "Move Settings")
     float JumpZSpeed = 500;
@@ -127,15 +139,14 @@ private:
     // 現在のワイヤーの長さ
     TArray<float> CurrentWireLength;
 
-    // 接続時のワイヤーの長さ
-    TArray<float> AttachWireLength;
-
-    // Static なオブジェクトに接続した場合の固定座標
+    // アンカーの固定座標
     TArray < FVector > StaticAnchorLocation;
 
     // Spline に沿ってメッシュを描画する
     UPROPERTY(VisibleAnywhere, Category = "Wire")
     TArray< USplineMeshComponent*> SplineMeshComponent;
+    UPROPERTY(EditAnywhere, Category = "Wire")
+    TArray< UStaticMeshComponent*> StaticMeshComponent_Rep;
 
     // モーションコントローラー（左/右）
     UPROPERTY(VisibleAnywhere, Category = "Controller")
@@ -151,10 +162,7 @@ private:
     float WireRange = 5000.0f; // ワイヤーの射程距離
 
     UPROPERTY(EditAnywhere, Category = "Wire Settings")
-    float RetractSpeed = 1200.0f; // ワイヤー巻き取り速度
-
-    UPROPERTY(EditAnywhere, Category = "Wire Settings")
-    float DetachRate = 0.25f; // ワイヤー切断条件値
+    float RetractSpeed = 120000.0f; // ワイヤー巻き取り速度
 
     UPROPERTY(EditAnywhere, Category = "Sound Effect")
     UAudioComponent* WireAttachAudio; // ワイヤー接続時のオーディオ
@@ -172,4 +180,23 @@ private:
     USceneComponent* CharacterShoulder_L; // キャラクターの左肩
     UPROPERTY(EditAnywhere, Category = "Character")
     USceneComponent* CharacterShoulder_R; // キャラクターの右肩
+
+    // ワイヤー接続時の振動
+    UPROPERTY(EditAnywhere, Category = "ForceFeedbackEffect")
+    UForceFeedbackEffect* FFE_AttachWire_L;
+    UPROPERTY(EditAnywhere, Category = "ForceFeedbackEffect")
+    UForceFeedbackEffect* FFE_AttachWire_R;
+    // ワイヤー巻取り時の振動
+    UPROPERTY(EditAnywhere, Category = "ForceFeedbackEffect")
+    UForceFeedbackEffect* FFE_Retract_L;
+    UPROPERTY(EditAnywhere, Category = "ForceFeedbackEffect")
+    UForceFeedbackEffect* FFE_Retract_R;
+
+    // 名前Widgetのコンポーネント
+    //UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
+    //UWidgetComponent* NameWidget;
+
+    // 表示するプレイヤー名（Replicated）
+    //UPROPERTY(ReplicatedUsing = OnRep_PlayerName, VisibleAnywhere, BlueprintReadOnly, Category = "PlayerInfo")
+    //FString PlayerName;
 };
