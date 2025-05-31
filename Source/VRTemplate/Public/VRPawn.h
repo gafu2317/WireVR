@@ -29,10 +29,6 @@ class VRTEMPLATE_API AVRPawn : public APawn
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
     UInputAction* JumpAction;
 
-    /** Move Input Action */
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-    UInputAction* MoveAction;
-
     /** Wire Input Action */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
     UInputAction* ConnectWireAction_L;
@@ -43,7 +39,6 @@ public:
     AVRPawn();
 
 protected:
-    void Move(const FInputActionValue& Value); /* 開発用 */
     void Jump(const FInputActionValue& Value);
 
     virtual void NotifyControllerChanged() override;
@@ -73,6 +68,20 @@ protected:
     void DetachWire_L();
     void DetachWire_R();
 
+    // サーバー側との同期
+    UFUNCTION(Server, Reliable, WithValidation)
+    void SyncWithServer_Tf(
+        FVector rootPos,
+        FRotator bodyRotation,
+        FVector controllerPos_L,
+        FVector controllerPos_R,
+        FVector controllerForward_L,
+        FVector controllerForward_R
+    );
+
+    UFUNCTION(Server, Reliable, WithValidation)
+    void SyncWithServer_Switch(int index, bool isAttach, FVector anchorPos);
+
 
 private:
     UPROPERTY(VisibleAnywhere)
@@ -86,9 +95,6 @@ private:
     float SlopeSin;
     bool bGrounded;
     APlayerController* PC;
-
-    UPROPERTY(EditAnywhere, Category = "Move Settings")
-    float MoveSpeed = 500;
 
     UPROPERTY(EditAnywhere, Category = "Move Settings")
     float JumpZSpeed = 500;
@@ -125,6 +131,8 @@ private:
     // Spline に沿ってメッシュを描画する
     UPROPERTY(VisibleAnywhere, Category = "Wire")
     TArray< USplineMeshComponent*> SplineMeshComponent;
+    UPROPERTY(EditAnywhere, Category = "Wire")
+    TArray< UStaticMeshComponent*> StaticMeshComponent_Rep;
 
     // モーションコントローラー（左/右）
     UPROPERTY(VisibleAnywhere, Category = "Controller")
@@ -137,10 +145,10 @@ private:
     UStaticMeshComponent* WireGun_R;
 
     UPROPERTY(EditAnywhere, Category = "Wire Settings")
-    float WireRange = 15000.0f; // ワイヤーの射程距離
+    float WireRange = 5000.0f; // ワイヤーの射程距離
 
     UPROPERTY(EditAnywhere, Category = "Wire Settings")
-    float RetractSpeed = 180000.0f; // ワイヤー巻き取り速度
+    float RetractSpeed = 120000.0f; // ワイヤー巻き取り速度
 
     UPROPERTY(EditAnywhere, Category = "Sound Effect")
     UAudioComponent* WireAttachAudio; // ワイヤー接続時のオーディオ
