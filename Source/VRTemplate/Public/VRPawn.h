@@ -9,6 +9,7 @@
 #include "Components/Image.h"
 #include "MotionControllerComponent.h"
 #include "Components/AudioComponent.h"
+#include "Components/WidgetComponent.h"
 #include "VRPawn.generated.h"
 
 class UCameraComponent;
@@ -37,6 +38,8 @@ class VRTEMPLATE_API AVRPawn : public APawn
 
 public:
     AVRPawn();
+
+    //virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
     void Jump(const FInputActionValue& Value);
@@ -85,6 +88,13 @@ protected:
     // スキン変更メソッド（ブループリントから呼び出し可能）
     UFUNCTION(BlueprintCallable, Category = "Skin")
     void ChangeBodyMaterial(UMaterialInterface* NewMaterial);
+
+    // 名前同期時の処理
+    UFUNCTION()
+    void OnRep_PlayerName();
+
+    // UI側の名前表示を更新する
+    void UpdateNameOnWidget();
 
 
 private:
@@ -181,4 +191,12 @@ private:
     UForceFeedbackEffect* FFE_Retract_L;
     UPROPERTY(EditAnywhere, Category = "ForceFeedbackEffect")
     UForceFeedbackEffect* FFE_Retract_R;
+
+    // 名前Widgetのコンポーネント
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
+    UWidgetComponent* NameWidget;
+
+    // 表示するプレイヤー名（Replicated）
+    UPROPERTY(ReplicatedUsing = OnRep_PlayerName, VisibleAnywhere, BlueprintReadOnly, Category = "PlayerInfo")
+    FString PlayerName;
 };
