@@ -20,6 +20,7 @@
 AVRPawn::AVRPawn()
 {
     PrimaryActorTick.bCanEverTick = true;
+    bReplicates = true;
     //SetReplicateMovement(false);
 
     CapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Capsule"));
@@ -593,9 +594,9 @@ void AVRPawn::SyncWithServer_Switch_Implementation(int index, bool isAttach, FVe
 }
 
 
-void AVRPawn::ChangeBodyMaterial(UMaterialInterface* NewMaterial)
+void AVRPawn::ChangeBodyMaterial_Implementation(UMaterialInterface* NewMaterial)
 {
-    if (NewMaterial) 
+    if (NewMaterial)
     {
         if (CharacterBody)
         {
@@ -610,4 +611,5 @@ void AVRPawn::ChangeBodyMaterial(UMaterialInterface* NewMaterial)
             CharacterHand_R->SetMaterial(0, NewMaterial);
         }
     }
+    UE_LOG(LogTemp, Display, TEXT("スキン"));
 }

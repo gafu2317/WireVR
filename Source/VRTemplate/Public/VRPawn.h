@@ -39,6 +39,17 @@ class VRTEMPLATE_API AVRPawn : public APawn
 public:
     AVRPawn();
 
+    // スキン変更メソッド（ブループリントから呼び出し可能）
+    UFUNCTION(NetMulticast, Reliable, BlueprintCallable, Category = "Skin")
+    void ChangeBodyMaterial(UMaterialInterface* NewMaterial);
+
+    // 名前同期時の処理
+    //UFUNCTION()
+    //void OnRep_PlayerName();
+
+    // UI側の名前表示を更新する
+    //void UpdateNameOnWidget();
+
     //virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
@@ -85,18 +96,6 @@ protected:
     void SyncWithServer_Switch(int index, bool isAttach, FVector anchorPos);
 
 
-    // スキン変更メソッド（ブループリントから呼び出し可能）
-    UFUNCTION(BlueprintCallable, Category = "Skin")
-    void ChangeBodyMaterial(UMaterialInterface* NewMaterial);
-
-    // 名前同期時の処理
-    //UFUNCTION()
-    //void OnRep_PlayerName();
-
-    // UI側の名前表示を更新する
-    //void UpdateNameOnWidget();
-
-
 private:
     UPROPERTY(VisibleAnywhere)
     UCapsuleComponent* CapsuleComponent;
@@ -126,7 +125,7 @@ private:
     float GroundFriction = 5.0f;
 
     UPROPERTY(EditAnywhere, Category = "Move Settings")
-    float AirResistance = 0.1f;
+    float AirResistance = 0.5f;
 
     /* 左右の区別がある場合は左が[0]で右が[1]とする */
 
@@ -162,7 +161,7 @@ private:
     float WireRange = 5000.0f; // ワイヤーの射程距離
 
     UPROPERTY(EditAnywhere, Category = "Wire Settings")
-    float RetractSpeed = 120000.0f; // ワイヤー巻き取り速度
+    float RetractSpeed = 100000.0f; // ワイヤー巻き取り速度
 
     UPROPERTY(EditAnywhere, Category = "Sound Effect")
     UAudioComponent* WireAttachAudio; // ワイヤー接続時のオーディオ
