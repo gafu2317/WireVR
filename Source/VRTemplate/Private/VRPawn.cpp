@@ -20,6 +20,7 @@
 AVRPawn::AVRPawn()
 {
     PrimaryActorTick.bCanEverTick = true;
+    bReplicates = true;
     //SetReplicateMovement(false);
 
     CapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Capsule"));
@@ -36,6 +37,7 @@ AVRPawn::AVRPawn()
     VRCamera->SetupAttachment(RootComponent);
     VRCamera->bUsePawnControlRotation = false;
     VRCamera->AddLocalOffset(FVector::UpVector * 45);
+    VRCamera->bLockToHmd = false;
 
     // コントローラー
     MotionController.SetNum(2);
@@ -277,6 +279,11 @@ void AVRPawn::Tick(float deltaTime)
     LookAtRotation = UKismetMathLibrary::FindLookAtRotation(StartLocation, TargetLocation);
     CharacterHand_R->SetWorldRotation(LookAtRotation);
 
+    // カメラ回転
+    FRotator DeviceRotation;
+    FVector DevicePosition;
+    UHeadMountedDisplayFunctionLibrary::GetOrientationAndPosition(DeviceRotation, DevicePosition);
+    VRCamera->SetWorldRotation(DeviceRotation);
 
     // サーバーへの同期
     SyncWithServer_Tf(
@@ -593,9 +600,9 @@ void AVRPawn::SyncWithServer_Switch_Implementation(int index, bool isAttach, FVe
 }
 
 
-void AVRPawn::ChangeBodyMaterial(UMaterialInterface* NewMaterial)
+void AVRPawn::ChangeBodyMaterial_Implementation(UMaterialInterface* NewMaterial)
 {
-    if (NewMaterial) 
+    if (NewMaterial)
     {
         if (CharacterBody)
         {
@@ -610,4 +617,5 @@ void AVRPawn::ChangeBodyMaterial(UMaterialInterface* NewMaterial)
             CharacterHand_R->SetMaterial(0, NewMaterial);
         }
     }
+    UE_LOG(LogTemp, Display, TEXT("スキン"));
 }
