@@ -39,9 +39,18 @@ class VRTEMPLATE_API AVRPawn : public APawn
 public:
     AVRPawn();
 
+    // 入力が有効かどうか
+    // 外部から管理可能
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
+    bool bEnableInpute = true;
+
     // スキン変更メソッド（ブループリントから呼び出し可能）
     UFUNCTION(NetMulticast, Reliable, BlueprintCallable, Category = "Skin")
     void ChangeBodyMaterial(UMaterialInterface* NewMaterial);
+
+    // 位置変更メソッド（ブループリントから呼び出し可能）
+    UFUNCTION(BlueprintCallable, Category = "Manage")
+    void SetPosition(FVector newPosition);
 
     // 名前同期時の処理
     //UFUNCTION()
@@ -134,9 +143,6 @@ private:
 
     // 前フレームでワイヤーが接続可能だったか
     TArray<bool> bPrevConnectable;
-
-    // 現在のワイヤーの長さ
-    TArray<float> CurrentWireLength;
 
     // アンカーの固定座標
     TArray < FVector > StaticAnchorLocation;
