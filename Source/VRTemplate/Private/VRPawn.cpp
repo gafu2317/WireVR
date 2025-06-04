@@ -120,7 +120,6 @@ AVRPawn::AVRPawn()
     //その他配列の確保
     bWireAttached.SetNum(2);
     bPrevConnectable.SetNum(2);
-    CurrentWireLength.SetNum(2);
     StaticAnchorLocation.SetNum(2);
 }
 
@@ -338,6 +337,9 @@ void AVRPawn::DetachWire_R()
 // ワイヤー接続
 void AVRPawn::AttachWire(int index)
 {
+    // 入力が有効でなければ終了
+    if (!bEnableInpute) return;
+
     // コントローラーの向きでレイを飛ばしてワイヤーを接続
     FVector Start = GetControllerLocation(index);
     FVector Forward = GetControllerForward(index);
@@ -354,9 +356,6 @@ void AVRPawn::AttachWire(int index)
 
         // 接続位置を記憶
         StaticAnchorLocation[index] = Hit.ImpactPoint;
-
-        // 接続時にワイヤー長を現在の距離に設定
-        CurrentWireLength[index] = FVector::Dist(GetControllerLocation(index), StaticAnchorLocation[index]);
 
         // マテリアルの切り替え
         SplineMeshComponent[index]->SetCustomPrimitiveDataFloat(0, 0);
@@ -618,4 +617,22 @@ void AVRPawn::ChangeBodyMaterial_Implementation(UMaterialInterface* NewMaterial)
         }
     }
     UE_LOG(LogTemp, Display, TEXT("スキン"));
+}
+
+
+void AVRPawn::SetPosition(FVector newPosition)
+{
+    // ワイヤー切断
+    DetachWire(0);
+    DetachWire(1);
+
+    // 慣性を消去
+    CurrentVelocity = FVector::ZeroVector;
+
+    // 位置の移動
+    RootComponent->SetWorldLocation(newPosition);
+
+    // ワイヤー表示更新
+    CheckConnectable(0, true);
+    CheckConnectable(1, true);
 }
