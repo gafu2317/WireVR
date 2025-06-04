@@ -37,7 +37,7 @@ AVRPawn::AVRPawn()
     VRCamera->SetupAttachment(RootComponent);
     VRCamera->bUsePawnControlRotation = false;
     VRCamera->AddLocalOffset(FVector::UpVector * 45);
-    VRCamera->bLockToHmd = false;
+    //VRCamera->bLockToHmd = false;
 
     // コントローラー
     MotionController.SetNum(2);
@@ -279,10 +279,9 @@ void AVRPawn::Tick(float deltaTime)
     CharacterHand_R->SetWorldRotation(LookAtRotation);
 
     // カメラ回転
-    FRotator DeviceRotation;
-    FVector DevicePosition;
-    UHeadMountedDisplayFunctionLibrary::GetOrientationAndPosition(DeviceRotation, DevicePosition);
-    VRCamera->SetWorldRotation(DeviceRotation);
+    //FRotator DeviceRotation;
+    //FVector DeviceLocation;
+    //UHeadMountedDisplayFunctionLibrary::GetOrientationAndPosition(DeviceRotation, DeviceLocation);
 
     // サーバーへの同期
     SyncWithServer_Tf(
