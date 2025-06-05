@@ -25,7 +25,7 @@ AVRPawn::AVRPawn()
 
     CapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Capsule"));
     RootComponent = CapsuleComponent;
-    CapsuleComponent->InitCapsuleSize(100.f, 95.0f);
+    CapsuleComponent->InitCapsuleSize(150.f, 150.0f);
     CapsuleComponent->SetEnableGravity(false);
     CapsuleComponent->SetCollisionProfileName(TEXT("InvisibleWall"));
 
@@ -98,7 +98,8 @@ AVRPawn::AVRPawn()
     CharacterBody = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CharacterBody"));
     CharacterBody->SetupAttachment(RootComponent);
     CharacterBody->SetCollisionProfileName(TEXT("NoCollision"));
-    CharacterBody->AddLocalOffset(FVector::UpVector * -80);
+    CharacterBody->SetRelativeScale3D(FVector::OneVector * 1.8f);
+    CharacterBody->AddLocalOffset(FVector::UpVector * -140);
     CharacterBody->SetOwnerNoSee(true);
     CharacterHand_L = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CharacterHand_L"));
     CharacterHand_R = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CharacterHand_R"));
@@ -106,6 +107,8 @@ AVRPawn::AVRPawn()
     CharacterHand_R->SetupAttachment(MotionController[1]);
     CharacterHand_L->SetCollisionProfileName(TEXT("NoCollision"));
     CharacterHand_R->SetCollisionProfileName(TEXT("NoCollision"));
+    CharacterHand_L->SetRelativeScale3D(FVector::OneVector * 1.8f);
+    CharacterHand_R->SetRelativeScale3D(FVector::OneVector * 1.8f);
     CharacterHand_L->SetOwnerNoSee(true);
     CharacterHand_R->SetOwnerNoSee(true);
     CharacterHand_L->SetIsReplicated(true);
