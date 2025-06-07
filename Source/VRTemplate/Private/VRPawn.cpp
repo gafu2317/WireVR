@@ -366,15 +366,6 @@ void AVRPawn::AttachWire(int index)
         WireAttachAudio->Stop();
         WireAttachAudio->Play(0.0f);
 
-        // コントローラーの振動
-        FForceFeedbackParameters vibrationSetting;
-        vibrationSetting.bLooping = false;
-        vibrationSetting.Tag = FName("AttachWire_" + FString::FromInt(index)); // 任意のタグ
-        PC->ClientPlayForceFeedback(index == 0 ? FFE_AttachWire_L : FFE_AttachWire_R, vibrationSetting);
-        vibrationSetting.bLooping = false;
-        vibrationSetting.Tag = FName("Retract_" + FString::FromInt(index)); // 任意のタグ
-        PC->ClientPlayForceFeedback(index == 0 ? FFE_Retract_L : FFE_Retract_R, vibrationSetting);
-
         // サーバーへ同期
         SyncWithServer_Switch(index, true, StaticAnchorLocation[index]);
     }
@@ -389,9 +380,6 @@ void AVRPawn::DetachWire(int index)
 
     // マテリアルの切り替え
     CheckConnectable(index, true);
-
-    // コントローラーの振動の停止
-    PC->ClientStopForceFeedback(index == 0 ? FFE_Retract_L : FFE_Retract_R, FName("Retract_" + FString::FromInt(index)));
 
     // サーバーへ同期
     SyncWithServer_Switch(index, false, FVector::ZeroVector);
@@ -542,6 +530,39 @@ void AVRPawn::SyncWithServer_Tf_Implementation(
     // クライアントからの呼び出しにのみ応答
     if (IsLocallyControlled()) return;
 
+    // 各クライアントに伝達
+    SyncMulticast_Tf_Implementation(
+        rootPos,
+        bodyRotation,
+        controllerPos_L,
+        controllerPos_R,
+        controllerForward_L,
+        controllerForward_R
+    );
+}
+bool AVRPawn::SyncMulticast_Tf_Validate(
+    FVector rootPos,
+    FRotator bodyRotation,
+    FVector controllerPos_L,
+    FVector controllerPos_R,
+    FVector controllerForward_L,
+    FVector controllerForward_R
+)
+{
+    return true;
+}
+void AVRPawn::SyncMulticast_Tf_Implementation(
+    FVector rootPos,
+    FRotator bodyRotation,
+    FVector controllerPos_L,
+    FVector controllerPos_R,
+    FVector controllerForward_L,
+    FVector controllerForward_R
+    ) 
+{
+    // 自分の制御下なら実行しない
+    if (IsLocallyControlled()) return;
+
 
     /* 位置や回転の算出・反映 */
 
@@ -580,6 +601,7 @@ void AVRPawn::SyncWithServer_Tf_Implementation(
     StaticMeshComponent_Rep[1]->SetRelativeScale3D(FVector::OneVector + FVector::ForwardVector * (wireLength - 1));
 }
 
+
 bool AVRPawn::SyncWithServer_Switch_Validate(int index, bool isAttach, FVector anchorPos)
 {
     return true;
@@ -587,6 +609,18 @@ bool AVRPawn::SyncWithServer_Switch_Validate(int index, bool isAttach, FVector a
 void AVRPawn::SyncWithServer_Switch_Implementation(int index, bool isAttach, FVector anchorPos)
 {
     // クライアントからの呼び出しにのみ応答
+    if (IsLocallyControlled()) return;
+
+    // 各プレイヤーに伝達
+    SyncMulticast_Switch_Implementation(index, isAttach, anchorPos);
+}
+bool AVRPawn::SyncMulticast_Switch_Validate(int index, bool isAttach, FVector anchorPos)
+{
+    return true;
+}
+void AVRPawn::SyncMulticast_Switch_Implementation(int index, bool isAttach, FVector anchorPos)
+{
+    // 自分の制御下なら実行しない
     if (IsLocallyControlled()) return;
 
     // ワイヤー表示の切り替え
@@ -618,7 +652,6 @@ void AVRPawn::ChangeBodyMaterial_Implementation(UMaterialInterface* NewMaterial)
             CharacterHand_R->SetMaterial(0, NewMaterial);
         }
     }
-    UE_LOG(LogTemp, Display, TEXT("スキン"));
 }
 
 

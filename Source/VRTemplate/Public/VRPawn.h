@@ -9,7 +9,6 @@
 #include "Components/Image.h"
 #include "MotionControllerComponent.h"
 #include "Components/AudioComponent.h"
-//#include "Components/WidgetComponent.h"
 #include "VRPawn.generated.h"
 
 class UCameraComponent;
@@ -52,15 +51,6 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Manage")
     void SetPosition(FVector newPosition);
 
-    // 名前同期時の処理
-    //UFUNCTION()
-    //void OnRep_PlayerName();
-
-    // UI側の名前表示を更新する
-    //void UpdateNameOnWidget();
-
-    //virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
 protected:
     void Jump(const FInputActionValue& Value);
 
@@ -101,8 +91,19 @@ protected:
         FVector controllerForward_L,
         FVector controllerForward_R
     );
+    UFUNCTION(NetMulticast, Reliable, WithValidation)
+    void SyncMulticast_Tf(
+        FVector rootPos,
+        FRotator bodyRotation,
+        FVector controllerPos_L,
+        FVector controllerPos_R,
+        FVector controllerForward_L,
+        FVector controllerForward_R
+    );
     UFUNCTION(Server, Reliable, WithValidation)
     void SyncWithServer_Switch(int index, bool isAttach, FVector anchorPos);
+    UFUNCTION(NetMulticast, Reliable, WithValidation)
+    void SyncMulticast_Switch(int index, bool isAttach, FVector anchorPos);
 
 
 private:
@@ -191,17 +192,4 @@ private:
     UForceFeedbackEffect* FFE_AttachWire_L;
     UPROPERTY(EditAnywhere, Category = "ForceFeedbackEffect")
     UForceFeedbackEffect* FFE_AttachWire_R;
-    // ワイヤー巻取り時の振動
-    UPROPERTY(EditAnywhere, Category = "ForceFeedbackEffect")
-    UForceFeedbackEffect* FFE_Retract_L;
-    UPROPERTY(EditAnywhere, Category = "ForceFeedbackEffect")
-    UForceFeedbackEffect* FFE_Retract_R;
-
-    // 名前Widgetのコンポーネント
-    //UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
-    //UWidgetComponent* NameWidget;
-
-    // 表示するプレイヤー名（Replicated）
-    //UPROPERTY(ReplicatedUsing = OnRep_PlayerName, VisibleAnywhere, BlueprintReadOnly, Category = "PlayerInfo")
-    //FString PlayerName;
 };
